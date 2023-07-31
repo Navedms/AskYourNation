@@ -4,7 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = __importDefault(require("express"));
-var http_1 = __importDefault(require("http"));
 var mongoose_1 = __importDefault(require("mongoose"));
 var config_1 = require("./config/config");
 var Logging_1 = __importDefault(require("./library/Logging"));
@@ -54,9 +53,7 @@ var startServer = function () {
         Logging_1.default.error(error);
         return res.status(404).json({ message: error.message });
     });
-    http_1.default
-        .createServer(router)
-        .listen(config_1.config.server.port, function () {
+    router.listen(config_1.config.server.port, function () {
         return Logging_1.default.info("Server listening on port ".concat(config_1.config.server.port));
     });
 };

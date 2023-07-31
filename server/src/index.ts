@@ -74,11 +74,9 @@ const startServer = () => {
     return res.status(404).json({ message: error.message });
   });
 
-  http
-    .createServer(router)
-    .listen(config.server.port, () =>
-      Logging.info(`Server listening on port ${config.server.port}`)
-    );
+  router.listen(config.server.port, () =>
+    Logging.info(`Server listening on port ${config.server.port}`)
+  );
 };
 
 // api address:  https://naughty-newt-necklace.cyclic.cloud
