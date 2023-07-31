@@ -1,5 +1,4 @@
 import express from 'express';
-import http from 'http';
 import mongoose from 'mongoose';
 
 import { config } from './config/config';
@@ -61,6 +60,10 @@ const startServer = () => {
     next();
   });
 
+  router.get('/', (req, res) => {
+    res.send({ title: 'Books' });
+  });
+
   // Routes
   // router.use('/nations', nationRoutes);
   // router.use('/users', userRoutes);
@@ -78,5 +81,4 @@ const startServer = () => {
     Logging.info(`Server listening on port ${config.server.port}`)
   );
 };
-
 // api address:  https://naughty-newt-necklace.cyclic.cloud
