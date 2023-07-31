@@ -33,16 +33,6 @@ var startServer = function () {
     });
     router.use(express_1.default.urlencoded({ extended: true }));
     router.use(express_1.default.json());
-    // Rules of our APIs
-    router.use(function (req, res, next) {
-        res.header('Access-Control-Allow-Origin', '*');
-        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-        if (req.method === 'OPTIONS') {
-            res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
-            return res.status(200).json({});
-        }
-        next();
-    });
     router.get('/', function (req, res) {
         res.send({ title: 'Books' });
     });
