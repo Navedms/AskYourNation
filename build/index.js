@@ -43,6 +43,9 @@ var startServer = function () {
         }
         next();
     });
+    router.get('/', function (req, res) {
+        res.send({ title: 'Books' });
+    });
     // Routes
     // router.use('/nations', nationRoutes);
     // router.use('/users', userRoutes);
