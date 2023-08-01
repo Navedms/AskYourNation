@@ -2,7 +2,6 @@ import express from 'express';
 import mongoose from 'mongoose';
 
 import { config } from './config/config';
-import Logging from './library/Logging';
 // import authorRoutes from "./routes/Author";
 // import bookRoutes from "./routes/Book";
 
@@ -13,12 +12,12 @@ const router = express();
 mongoose
   .connect(config.mongo.url, { retryWrites: true, w: 'majority' })
   .then(() => {
-    Logging.info('connected to database');
+    console.log('connected to database');
     startServer();
   })
   .catch((error) => {
-    Logging.error('unable to connect to database');
-    Logging.error(error);
+    console.log('unable to connect to database');
+    console.log(error);
   });
 
 // start the server if mongo connected
@@ -26,12 +25,12 @@ mongoose
 const startServer = () => {
   router.use((req, res, next) => {
     // log the Request
-    Logging.info(
+    console.log(
       `Incomming -> Method: [${req.method}] - Url: [${req.url}] - IP: [${req.socket.remoteAddress}]`
     );
 
     res.on('finish', () => {
-      Logging.info(
+      console.log(
         `Incomming -> Method: [${req.method}] - Url: [${req.url}] - IP: [${req.socket.remoteAddress}] - Status: [${res.statusCode}]`
       );
     });
@@ -53,13 +52,13 @@ const startServer = () => {
   // Error handling
   router.use((req, res, next) => {
     const error = new Error('Not Found');
-    Logging.error(error);
+    console.log(error);
 
     return res.status(404).json({ message: error.message });
   });
 
   router.listen(config.server.port, () =>
-    Logging.info(`Server listening on port ${config.server.port}`)
+    console.log(`Server listening on port ${config.server.port}`)
   );
 };
 // api address:  https://naughty-newt-necklace.cyclic.cloud
