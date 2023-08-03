@@ -45,18 +45,24 @@ router.post('/', async (req: Request, res: Response) => {
 
 // GET (User profile)
 
-router.get('/', auth, (req: any, res: Response) => {
+// router.get('/', auth, (req: any, res: Response) => {
+//   res.json({
+//     id: req.user._id,
+//     email: req.user.email,
+//     firstName: req.user.firstName,
+//     lastName: req.user.lastName,
+//     nation: req.user.nation,
+//     active: req.user.active,
+//     points: req.user.points,
+//     postQuestions: req.user.postQuestions,
+//     answeredQuestions: req.user.answeredQuestions,
+//     token: req.user.token,
+//   });
+// });
+
+router.get('/', (req: any, res: Response) => {
   res.json({
-    id: req.user._id,
-    email: req.user.email,
-    firstName: req.user.firstName,
-    lastName: req.user.lastName,
-    nation: req.user.nation,
-    active: req.user.active,
-    points: req.user.points,
-    postQuestions: req.user.postQuestions,
-    answeredQuestions: req.user.answeredQuestions,
-    token: req.user.token,
+    id: 'hello!',
   });
 });
 
