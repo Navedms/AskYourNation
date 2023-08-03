@@ -15,4 +15,8 @@ exports.config = {
     server: {
         port: SERVER_PORT,
     },
+    secret: {
+        SECRET: process.env.SECRET || 'secrettt',
+        JWT_SECRET_KEY: process.env.JWT_SECRET_KEY || 'secret',
+    },
 };

@@ -1,8 +1,10 @@
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 
 import { config } from './config/config';
-// import authorRoutes from "./routes/Author";
+import nationRoutes from './routes/Nations';
+import userRoutes from './routes/User';
 // import bookRoutes from "./routes/Book";
 
 const router = express();
@@ -39,14 +41,11 @@ const startServer = () => {
   });
   router.use(express.urlencoded({ extended: true }));
   router.use(express.json());
-
-  router.get('/', (req, res) => {
-    res.send({ title: 'Books' });
-  });
+  router.use(cookieParser());
 
   // Routes
-  // router.use('/nations', nationRoutes);
-  // router.use('/users', userRoutes);
+  router.use('/api/nations', nationRoutes);
+  router.use('/api/users', userRoutes);
   // router.use('/questions', questionRoutes);
 
   // Error handling
@@ -61,4 +60,3 @@ const startServer = () => {
     console.log(`Server listening on port ${config.server.port}`)
   );
 };
-// api address:  https://naughty-newt-necklace.cyclic.cloud
