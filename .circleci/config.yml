@@ -10,14 +10,12 @@ orbs:
 
 jobs:
   # Below is the definition of your job to test your Node app. You can rename and customize it as you want.
-  test:
+  build:
     # These next lines define a docker executor: https://circleci.com/docs/2.0/executor-types/
     # You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
     # A list of available CircleCI docker Convenience Images are available here: https://circleci.com/developer/images/image/cimg/node
     docker:
       - image: cimg/node:16.16
-    # Then run your tests!
-    # CircleCI will report the results back to your VCS provider.
     steps:
       # Checkout the code as the first step.
       - checkout
