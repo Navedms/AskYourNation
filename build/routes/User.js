@@ -42,7 +42,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = __importDefault(require("express"));
 var router = express_1.default.Router();
 var User_1 = __importDefault(require("../models/User"));
-var auth_1 = require("../middleware/auth");
 // POST (Register and Login Admin and User)
 router.post('/', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var loginUser, user, doc;
@@ -91,18 +90,23 @@ router.post('/', function (req, res) { return __awaiter(void 0, void 0, void 0, 
 }); });
 // GET AND UPDATE (User personal profile)
 // GET (User profile)
-router.get('/', auth_1.auth, function (req, res) {
+// router.get('/', auth, (req: any, res: Response) => {
+//   res.json({
+//     id: req.user._id,
+//     email: req.user.email,
+//     firstName: req.user.firstName,
+//     lastName: req.user.lastName,
+//     nation: req.user.nation,
+//     active: req.user.active,
+//     points: req.user.points,
+//     postQuestions: req.user.postQuestions,
+//     answeredQuestions: req.user.answeredQuestions,
+//     token: req.user.token,
+//   });
+// });
+router.get('/', function (req, res) {
     res.json({
-        id: req.user._id,
-        email: req.user.email,
-        firstName: req.user.firstName,
-        lastName: req.user.lastName,
-        nation: req.user.nation,
-        active: req.user.active,
-        points: req.user.points,
-        postQuestions: req.user.postQuestions,
-        answeredQuestions: req.user.answeredQuestions,
-        token: req.user.token,
+        id: 'hello!',
     });
 });
 // UPDATE (User update profile)
