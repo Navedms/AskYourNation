@@ -3,9 +3,9 @@ import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 
 import { config } from './config/config';
-import nationRoutes from './routes/Nations';
-import userRoutes from './routes/User';
-// import bookRoutes from "./routes/Book";
+import nationRoutes from './routes/nations';
+import userRoutes from './routes/user';
+import questionRoutes from './routes/question';
 
 const router = express();
 
@@ -46,7 +46,7 @@ const startServer = () => {
   // Routes
   router.use('/api/nations', nationRoutes);
   router.use('/api/users', userRoutes);
-  // router.use('/questions', questionRoutes);
+  router.use('/api/questions', questionRoutes);
 
   // Error handling
   router.use((req, res, next) => {

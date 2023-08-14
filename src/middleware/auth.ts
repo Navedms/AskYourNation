@@ -1,6 +1,6 @@
 import { Response, Request, NextFunction } from 'express';
 
-import User, { IUserModel } from '../models/User';
+import User, { IUserModel } from '../models/user';
 
 const auth = (req: Request, res: Response, next: NextFunction) => {
   let token = req.headers?.authorization || req.cookies?.auth;

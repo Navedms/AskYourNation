@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -7,6 +7,16 @@ import { config } from '../config/config';
 export interface Nation {
   name: string;
   flag: string;
+}
+export interface VerificationCode {
+  code: string;
+  expired: number;
+}
+
+export interface Points {
+  total: number;
+  questions: number;
+  answers: number;
 }
 
 export interface IUser {
@@ -18,14 +28,19 @@ export interface IUser {
   lastName: string;
   nation: Nation;
   active?: boolean;
-  points?: number;
+  points?: Points;
   postQuestions: Schema.Types.ObjectId[];
   answeredQuestions: Schema.Types.ObjectId[];
   token: string;
+  verificationCode: VerificationCode;
 }
 
 export interface IUserModel extends IUser {
   comparePassword(
+    candidatePassword: string,
+    cb: (err: Error, isMatch: boolean, valid: IUser) => void
+  ): Promise<boolean>;
+  compareVerification(
     candidatePassword: string,
     cb: (err: Error, isMatch: boolean, valid: IUser) => void
   ): Promise<boolean>;
@@ -72,8 +87,18 @@ const UserSchema: Schema = new Schema(
       default: true,
     },
     points: {
-      type: Number,
-      default: 0,
+      total: {
+        type: Number,
+        default: 0,
+      },
+      questions: {
+        type: Number,
+        default: 0,
+      },
+      answers: {
+        type: Number,
+        default: 0,
+      },
     },
     postQuestions: {
       type: [Schema.Types.ObjectId],
@@ -83,6 +108,14 @@ const UserSchema: Schema = new Schema(
     },
     token: {
       type: String,
+    },
+    verificationCode: {
+      code: {
+        type: String,
+      },
+      expired: {
+        type: Number,
+      },
     },
   },
   {
@@ -102,6 +135,16 @@ UserSchema.pre('save', function (next) {
         next();
       });
     });
+  } else if (user.isModified('verificationCode')) {
+    bcrypt.genSalt(SALT_I, function (err, salt) {
+      if (err) return next(err);
+      bcrypt.hash(user.verificationCode.code, salt, function (err, hash) {
+        if (err) return next(err);
+        user.verificationCode.code = hash;
+
+        next();
+      });
+    });
   } else {
     next();
   }
@@ -115,6 +158,20 @@ UserSchema.methods.comparePassword = function (
     if (err) return cb(err);
     cb(null, isMatch);
   });
+};
+
+UserSchema.methods.compareVerification = function (
+  candidateVerification: string,
+  cb: any
+) {
+  bcrypt.compare(
+    candidateVerification,
+    this.verificationCode.code,
+    function (err, isMatch) {
+      if (err) return cb(err);
+      cb(null, isMatch);
+    }
+  );
 };
 
 UserSchema.methods.generateToken = async function (cb: any) {

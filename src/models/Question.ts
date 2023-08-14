@@ -1,5 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { Nation } from './User';
+import { Nation } from './user';
 
 interface Answers {
   options: string[];
@@ -16,13 +16,17 @@ interface AmountOfanswers {
   all: number;
   correct: number;
 }
+interface Rating {
+  value: number;
+  numberOfRatings: number;
+  rank: number;
+}
 
 export interface IQuestion {
   nation: Nation;
   question: string;
   answers: Answers;
-  rating: number;
-  numberOfRatings: number;
+  rating: Rating;
   amountOfanswers: AmountOfanswers;
   createdBy: CreatedBy;
 }
@@ -34,6 +38,7 @@ const QuestionSchema: Schema = new Schema(
     nation: {
       name: {
         type: String,
+        required: true,
       },
       flag: {
         type: String,
@@ -42,6 +47,8 @@ const QuestionSchema: Schema = new Schema(
     question: {
       type: String,
       required: true,
+      maxLength: 200,
+      unique: 1,
     },
     answers: {
       options: {
@@ -54,20 +61,28 @@ const QuestionSchema: Schema = new Schema(
       },
     },
     rating: {
-      type: Number,
-      min: 1,
-      max: 5,
-    },
-    numberOfRatings: {
-      type: Number,
-      default: 0,
+      value: {
+        type: Number,
+        min: 1,
+        max: 5,
+      },
+      numberOfRatings: {
+        type: Number,
+        default: 0,
+      },
+      rank: {
+        type: Number,
+        default: 0,
+      },
     },
     amountOfanswers: {
       correct: {
         type: Number,
+        default: 0,
       },
       all: {
         type: Number,
+        default: 0,
       },
     },
     createdBy: {
@@ -76,9 +91,9 @@ const QuestionSchema: Schema = new Schema(
         required: true,
         ref: 'User',
       },
+      firstName: { type: String, required: true, ref: 'User' },
+      lastName: { type: String, required: true, ref: 'User' },
     },
-    firstName: { type: String, required: true, ref: 'User' },
-    lastName: { type: String, required: true, ref: 'User' },
   },
   {
     timestamps: true,
