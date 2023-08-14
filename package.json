@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon",
-    "build": "rimraf ./build && tsc",
+    "oh": "rimraf ./build && tsc",
+    "build": "tsc",
     "start": "node build/index.js"
   },
   "keywords": [],
