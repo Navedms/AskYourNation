@@ -98,8 +98,18 @@ var UserSchema = new mongoose_1.Schema({
         default: true,
     },
     points: {
-        type: Number,
-        default: 0,
+        total: {
+            type: Number,
+            default: 0,
+        },
+        questions: {
+            type: Number,
+            default: 0,
+        },
+        answers: {
+            type: Number,
+            default: 0,
+        },
     },
     postQuestions: {
         type: [mongoose_1.Schema.Types.ObjectId],
@@ -109,6 +119,14 @@ var UserSchema = new mongoose_1.Schema({
     },
     token: {
         type: String,
+    },
+    verificationCode: {
+        code: {
+            type: String,
+        },
+        expired: {
+            type: Number,
+        },
     },
 }, {
     versionKey: false,
@@ -127,12 +145,31 @@ UserSchema.pre('save', function (next) {
             });
         });
     }
+    else if (user.isModified('verificationCode')) {
+        bcrypt_1.default.genSalt(SALT_I, function (err, salt) {
+            if (err)
+                return next(err);
+            bcrypt_1.default.hash(user.verificationCode.code, salt, function (err, hash) {
+                if (err)
+                    return next(err);
+                user.verificationCode.code = hash;
+                next();
+            });
+        });
+    }
     else {
         next();
     }
 });
 UserSchema.methods.comparePassword = function (candidatePassword, cb) {
     bcrypt_1.default.compare(candidatePassword, this.password, function (err, isMatch) {
+        if (err)
+            return cb(err);
+        cb(null, isMatch);
+    });
+};
+UserSchema.methods.compareVerification = function (candidateVerification, cb) {
+    bcrypt_1.default.compare(candidateVerification, this.verificationCode.code, function (err, isMatch) {
         if (err)
             return cb(err);
         cb(null, isMatch);

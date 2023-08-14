@@ -7,9 +7,9 @@ var express_1 = __importDefault(require("express"));
 var cookie_parser_1 = __importDefault(require("cookie-parser"));
 var mongoose_1 = __importDefault(require("mongoose"));
 var config_1 = require("./config/config");
-var Nations_1 = __importDefault(require("./routes/Nations"));
-var User_1 = __importDefault(require("./routes/User"));
-// import bookRoutes from "./routes/Book";
+var nations_1 = __importDefault(require("./routes/nations"));
+var user_1 = __importDefault(require("./routes/user"));
+var question_1 = __importDefault(require("./routes/question"));
 var router = (0, express_1.default)();
 // conect to mongoDB
 mongoose_1.default
@@ -36,9 +36,9 @@ var startServer = function () {
     router.use(express_1.default.json());
     router.use((0, cookie_parser_1.default)());
     // Routes
-    router.use('/api/nations', Nations_1.default);
-    router.use('/api/users', User_1.default);
-    // router.use('/questions', questionRoutes);
+    router.use('/api/nations', nations_1.default);
+    router.use('/api/users', user_1.default);
+    router.use('/api/questions', question_1.default);
     // Error handling
     router.use(function (req, res, next) {
         var error = new Error('Not Found');

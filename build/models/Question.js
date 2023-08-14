@@ -28,6 +28,7 @@ var QuestionSchema = new mongoose_1.Schema({
     nation: {
         name: {
             type: String,
+            required: true,
         },
         flag: {
             type: String,
@@ -36,6 +37,8 @@ var QuestionSchema = new mongoose_1.Schema({
     question: {
         type: String,
         required: true,
+        maxLength: 200,
+        unique: 1,
     },
     answers: {
         options: {
@@ -48,20 +51,28 @@ var QuestionSchema = new mongoose_1.Schema({
         },
     },
     rating: {
-        type: Number,
-        min: 1,
-        max: 5,
-    },
-    numberOfRatings: {
-        type: Number,
-        default: 0,
+        value: {
+            type: Number,
+            min: 1,
+            max: 5,
+        },
+        numberOfRatings: {
+            type: Number,
+            default: 0,
+        },
+        rank: {
+            type: Number,
+            default: 0,
+        },
     },
     amountOfanswers: {
         correct: {
             type: Number,
+            default: 0,
         },
         all: {
             type: Number,
+            default: 0,
         },
     },
     createdBy: {
@@ -70,9 +81,9 @@ var QuestionSchema = new mongoose_1.Schema({
             required: true,
             ref: 'User',
         },
+        firstName: { type: String, required: true, ref: 'User' },
+        lastName: { type: String, required: true, ref: 'User' },
     },
-    firstName: { type: String, required: true, ref: 'User' },
-    lastName: { type: String, required: true, ref: 'User' },
 }, {
     timestamps: true,
 });
