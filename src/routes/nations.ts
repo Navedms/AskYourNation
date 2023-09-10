@@ -23,7 +23,7 @@ router.get('/', (req: Request, res: Response) => {
           return 0;
         });
       res.status(200).json({
-        data,
+        list: data,
       });
     })
     .catch(function (error) {

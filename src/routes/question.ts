@@ -5,6 +5,7 @@ import Question from '../models/question';
 import User from '../models/user';
 import { auth } from '../middleware/auth';
 import { log } from 'console';
+import sendEmail from '../utils/sendEmail';
 
 // GET
 
@@ -162,6 +163,44 @@ router.patch('/rating', auth, async (req: any, res: Response) => {
       rating: newQuestion.rating.value,
       numberOfRatings: newQuestion.rating.numberOfRatings,
       id: newQuestion._id,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      error,
+    });
+  }
+});
+
+// report question
+router.patch('/report', auth, async (req: any, res: Response) => {
+  try {
+    const question = await Question.findById(req.body.id);
+    if (!question) {
+      return res.status(400).json({
+        error: 'Failed to report this question. It has already been deleted.',
+      });
+    }
+
+    // add question id to the user answered list
+    await User.findByIdAndUpdate(req.user._id, {
+      $push: { answeredQuestions: req.body.id },
+    });
+
+    // send email report
+
+    const message = `<p><b>User report a question:</b><br><br><b>Details of the reporter:</b><br>Id: ${req.user._id}<br>FirstName: ${req.user.firstName}<br>LastName: ${req.user.lastName}<br><br><b>Question details:</b><br>Id: ${question._id}<br>Question: ${question.question}<br>Answers: ${question.answers.options}<br>Correct Answer Index: ${question.answers.correctIndex}<br>Created By:<br> - Id: ${question.createdBy.id}<br> - firstName: ${question.createdBy.firstName}<br> - lastName: ${question.createdBy.lastName}<br><br><b>The details of the report:</b><br>Reason: ${req.body.reason}<br><br>Free Text: ${req.body.text}</p>`;
+
+    const sendVerificationMail = async () =>
+      await sendEmail(
+        process.env.EMAIL_USER as string,
+        `User report a question: ${req.body.id} - AskYourNation app`,
+        message
+      );
+    sendVerificationMail();
+
+    res.json({
+      success: true,
+      msg: 'You have successfully reported this question!',
     });
   } catch (error) {
     return res.status(400).json({

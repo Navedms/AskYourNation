@@ -291,7 +291,7 @@ router.patch('/verification-code', async (req: Request, res: Response) => {
         // if is active... login!
         res.cookie('auth', user.token).json({
           verification: true,
-          token: user.token,
+          id: user._id,
           message:
             'Verification passed successfully. You must now reset your password.',
         });
@@ -327,7 +327,7 @@ router.patch(
       }
       res.json({
         success: true,
-        msg: 'Your password has been successfully changed!',
+        message: 'Your password has been successfully changed!',
       });
     } catch (err) {
       return res.status(400).json({
@@ -353,7 +353,7 @@ router.delete('/', auth, async (req: any, res: Response) => {
   }
   res.json({
     success: true,
-    msg: 'Your profile has been successfully deleted!',
+    message: 'Your profile has been successfully deleted!',
   });
 });
 

@@ -63,6 +63,7 @@ const UserSchema: Schema = new Schema(
       type: String,
       required: true,
       trim: true,
+      lowercase: true,
       unique: 1,
     },
     verifiedEmail: {
