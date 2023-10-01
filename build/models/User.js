@@ -74,6 +74,7 @@ var UserSchema = new mongoose_1.Schema({
         type: String,
         required: true,
         trim: true,
+        lowercase: true,
         unique: 1,
     },
     verifiedEmail: {
@@ -94,6 +95,10 @@ var UserSchema = new mongoose_1.Schema({
         },
     },
     active: {
+        type: Boolean,
+        default: true,
+    },
+    sounds: {
         type: Boolean,
         default: true,
     },
@@ -131,9 +136,9 @@ var UserSchema = new mongoose_1.Schema({
 }, {
     versionKey: false,
 });
-UserSchema.pre('save', function (next) {
+UserSchema.pre("save", function (next) {
     var user = this;
-    if (user.isModified('password')) {
+    if (user.isModified("password")) {
         bcrypt_1.default.genSalt(SALT_I, function (err, salt) {
             if (err)
                 return next(err);
@@ -145,7 +150,7 @@ UserSchema.pre('save', function (next) {
             });
         });
     }
-    else if (user.isModified('verificationCode')) {
+    else if (user.isModified("verificationCode")) {
         bcrypt_1.default.genSalt(SALT_I, function (err, salt) {
             if (err)
                 return next(err);
@@ -204,7 +209,10 @@ UserSchema.statics.findByToken = function (token, cb) {
             var loginUser;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, user.findOne({ _id: decode.id, token: token })];
+                    case 0: return [4 /*yield*/, user.findOne({
+                            _id: decode.id,
+                            token: token,
+                        })];
                     case 1:
                         loginUser = _a.sent();
                         cb(null, loginUser);
@@ -214,4 +222,4 @@ UserSchema.statics.findByToken = function (token, cb) {
         });
     });
 };
-exports.default = mongoose_1.default.model('User', UserSchema);
+exports.default = mongoose_1.default.model("User", UserSchema);

@@ -48,6 +48,7 @@ var QuestionSchema = new mongoose_1.Schema({
         correctIndex: {
             type: Number,
             required: true,
+            select: false,
         },
     },
     rating: {
@@ -79,12 +80,12 @@ var QuestionSchema = new mongoose_1.Schema({
         id: {
             type: mongoose_1.Schema.Types.ObjectId,
             required: true,
-            ref: 'User',
+            ref: "User",
         },
-        firstName: { type: String, required: true, ref: 'User' },
-        lastName: { type: String, required: true, ref: 'User' },
+        firstName: { type: String, required: true, ref: "User" },
+        lastName: { type: String, required: true, ref: "User" },
     },
 }, {
     timestamps: true,
 });
-exports.default = mongoose_1.default.model('Question', QuestionSchema);
+exports.default = mongoose_1.default.model("Question", QuestionSchema);

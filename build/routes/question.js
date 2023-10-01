@@ -44,9 +44,10 @@ var router = express_1.default.Router();
 var question_1 = __importDefault(require("../models/question"));
 var user_1 = __importDefault(require("../models/user"));
 var auth_1 = require("../middleware/auth");
+var sendEmail_1 = __importDefault(require("../utils/sendEmail"));
 // GET
 // get 20 systematic questions again and again... untill end
-router.get('/', auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+router.get("/", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var limit, skip, list;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -54,14 +55,14 @@ router.get('/', auth_1.auth, function (req, res) { return __awaiter(void 0, void
                 limit = req.query.limit || 20;
                 skip = req.query.skip || 0;
                 return [4 /*yield*/, question_1.default.find({
-                        'createdBy.id': { $ne: req.user._id },
+                        "createdBy.id": { $ne: req.user._id },
                         _id: { $nin: req.user.answeredQuestions }, // filter questions that the user has already answered
                     })
                         .limit(limit)
                         .skip(skip)
                         .sort({
-                        'rating.rank': 'desc',
-                        createdAt: 'desc',
+                        "rating.rank": "desc",
+                        createdAt: "desc",
                     })];
             case 1:
                 list = _a.sent();
@@ -77,22 +78,18 @@ router.get('/', auth_1.auth, function (req, res) { return __awaiter(void 0, void
         }
     });
 }); });
-// get 20 my questions and load more... untill end.
-router.get('/my-questions', auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var limit, skip, list;
+// get my questions.
+router.get("/my-questions", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var list;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0:
-                limit = req.query.limit || 20;
-                skip = req.query.skip || 0;
-                return [4 /*yield*/, question_1.default.find({
-                        'createdBy.id': req.user._id,
-                    })
-                        .limit(limit)
-                        .skip(skip)
-                        .sort({
-                        createdAt: 'desc',
-                    })];
+            case 0: return [4 /*yield*/, question_1.default.find({
+                    "createdBy.id": req.user._id,
+                })
+                    .select("+answers.correctIndex")
+                    .sort({
+                    createdAt: "desc",
+                })];
             case 1:
                 list = _a.sent();
                 if (!list || list.length === 0) {
@@ -108,7 +105,7 @@ router.get('/my-questions', auth_1.auth, function (req, res) { return __awaiter(
     });
 }); });
 // POST (add new question)
-router.post('/', auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+router.post("/", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var question, doc, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -127,20 +124,20 @@ router.post('/', auth_1.auth, function (req, res) { return __awaiter(void 0, voi
                 doc = _a.sent();
                 if (!doc) {
                     return [2 /*return*/, res.status(400).json({
-                            error: 'Posting the question failed',
+                            error: "Posting the question failed",
                         })];
                 }
                 // update user DB
                 return [4 /*yield*/, user_1.default.findByIdAndUpdate(req.user._id, {
                         $push: { postQuestions: doc._id },
-                        $inc: { 'points.total': 1, 'points.questions': 1 },
+                        $inc: { "points.total": 1, "points.questions": 1 },
                     })];
             case 3:
                 // update user DB
                 _a.sent();
                 res.json({
                     success: true,
-                    msg: 'Your question has been successfully posted',
+                    msg: "Your question has been successfully posted",
                     question: doc,
                 });
                 return [3 /*break*/, 5];
@@ -155,25 +152,25 @@ router.post('/', auth_1.auth, function (req, res) { return __awaiter(void 0, voi
 }); });
 // PATCH
 // update question
-router.patch('/update', auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+router.patch("/update", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var question, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
                 return [4 /*yield*/, question_1.default.findByIdAndUpdate(req.body.id, req.body, {
-                        returnDocument: 'after',
+                        returnDocument: "after",
                     })];
             case 1:
                 question = _a.sent();
                 if (!question) {
                     return [2 /*return*/, res.status(400).json({
-                            error: 'Failed to Update Your question. Try again later.',
+                            error: "Failed to Update Your question. Try again later.",
                         })];
                 }
                 res.json({
                     success: true,
-                    msg: 'Your question has been successfully updated!',
+                    msg: "Your question has been successfully updated!",
                     profile: question,
                 });
                 return [3 /*break*/, 3];
@@ -187,7 +184,7 @@ router.patch('/update', auth_1.auth, function (req, res) { return __awaiter(void
     });
 }); });
 // update qution rating
-router.patch('/rating', auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+router.patch("/rating", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var question, rating, newQuestion, error_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -195,7 +192,7 @@ router.patch('/rating', auth_1.auth, function (req, res) { return __awaiter(void
                 _a.trys.push([0, 3, , 4]);
                 if (req.body.rating > 5 || req.body.rating < 1) {
                     return [2 /*return*/, res.status(400).json({
-                            error: 'The rating must be between 1 and 5',
+                            error: "The rating must be between 1 and 5",
                         })];
                 }
                 return [4 /*yield*/, question_1.default.findById(req.body.id)];
@@ -203,7 +200,7 @@ router.patch('/rating', auth_1.auth, function (req, res) { return __awaiter(void
                 question = _a.sent();
                 if (!question) {
                     return [2 /*return*/, res.status(400).json({
-                            error: 'Failed to rating this question. Try again later.',
+                            error: "Failed to rating this question. Try again later.",
                         })];
                 }
                 rating = question.rating.value
@@ -212,22 +209,22 @@ router.patch('/rating', auth_1.auth, function (req, res) { return __awaiter(void
                             (question.rating.numberOfRatings + 1)
                     : Number(req.body.rating);
                 return [4 /*yield*/, question_1.default.findByIdAndUpdate(req.body.id, {
-                        'rating.value': rating,
-                        'rating.rank': rating * (question.rating.numberOfRatings + 1),
-                        $inc: { 'rating.numberOfRatings': 1 },
+                        "rating.value": rating,
+                        "rating.rank": rating * (question.rating.numberOfRatings + 1),
+                        $inc: { "rating.numberOfRatings": 1 },
                     }, {
-                        returnDocument: 'after',
+                        returnDocument: "after",
                     })];
             case 2:
                 newQuestion = _a.sent();
                 if (!newQuestion) {
                     return [2 /*return*/, res.status(400).json({
-                            error: 'Failed to rating this question. Try again later.',
+                            error: "Failed to rating this question. Try again later.",
                         })];
                 }
                 res.json({
                     success: true,
-                    msg: 'You have successfully rated this question!',
+                    msg: "You have successfully rated this question!",
                     rating: newQuestion.rating.value,
                     numberOfRatings: newQuestion.rating.numberOfRatings,
                     id: newQuestion._id,
@@ -242,36 +239,84 @@ router.patch('/rating', auth_1.auth, function (req, res) { return __awaiter(void
         }
     });
 }); });
-// answer question
-router.patch('/answer', auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var question, userAnsweredCorrect, error_4;
+// report question
+router.patch("/report", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var question, message_1, sendVerificationMail, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 4, , 5]);
-                return [4 /*yield*/, question_1.default.findById(req.body.id)];
+                _a.trys.push([0, 3, , 4]);
+                return [4 /*yield*/, question_1.default.findById(req.body.id).select("+answers.correctIndex")];
             case 1:
                 question = _a.sent();
                 if (!question) {
                     return [2 /*return*/, res.status(400).json({
-                            error: 'Failed to answer on this question. Try again later.',
+                            error: "Failed to report this question. It has already been deleted.",
+                        })];
+                }
+                // add question id to the user answered list
+                return [4 /*yield*/, user_1.default.findByIdAndUpdate(req.user._id, {
+                        $push: { answeredQuestions: req.body.id },
+                    })];
+            case 2:
+                // add question id to the user answered list
+                _a.sent();
+                message_1 = "<p><b>User report a question:</b><br><br><b>Details of the reporter:</b><br>Id: ".concat(req.user._id, "<br>FirstName: ").concat(req.user.firstName, "<br>LastName: ").concat(req.user.lastName, "<br><br><b>Question details:</b><br>Id: ").concat(question._id, "<br>Question: ").concat(question.question, "<br>Answers: ").concat(question.answers.options, "<br>Correct Answer Index: ").concat(question.answers.correctIndex, "<br>Created By:<br> - Id: ").concat(question.createdBy.id, "<br> - firstName: ").concat(question.createdBy.firstName, "<br> - lastName: ").concat(question.createdBy.lastName, "<br><br><b>The details of the report:</b><br>Reason: ").concat(req.body.reason, "<br><br>Free Text: ").concat(req.body.text, "</p>");
+                sendVerificationMail = function () { return __awaiter(void 0, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, (0, sendEmail_1.default)(process.env.EMAIL_USER, "User report a question: ".concat(req.body.id, " - AskYourNation app"), message_1)];
+                            case 1: return [2 /*return*/, _a.sent()];
+                        }
+                    });
+                }); };
+                sendVerificationMail();
+                res.json({
+                    success: true,
+                    msg: "You have successfully reported this question!",
+                });
+                return [3 /*break*/, 4];
+            case 3:
+                error_4 = _a.sent();
+                return [2 /*return*/, res.status(400).json({
+                        error: error_4,
+                    })];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); });
+// answer question
+router.patch("/answer", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var question, userAnsweredCorrect, error_5;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 4, , 5]);
+                return [4 /*yield*/, question_1.default.findById(req.body.id).select("+answers.correctIndex")];
+            case 1:
+                question = _a.sent();
+                if (!question) {
+                    return [2 /*return*/, res.status(400).json({
+                            error: "Failed to answer on this question. Try again later.",
                         })];
                 }
                 if (question.createdBy.id.toString() === req.user._id.toString()) {
                     return [2 /*return*/, res.status(400).json({
-                            error: 'You cannot answer the questions you wrote.',
+                            error: "You cannot answer the questions you wrote.",
                         })];
                 }
                 if (req.user.answeredQuestions.includes(req.body.id)) {
                     return [2 /*return*/, res.status(400).json({
-                            error: 'You have already answered this question.',
+                            error: "You have already answered this question.",
                         })];
                 }
-                userAnsweredCorrect = question.answers.correctIndex === req.body.answerIndex ? true : false;
+                userAnsweredCorrect = question.answers.correctIndex === req.body.answerIndex
+                    ? true
+                    : false;
                 return [4 /*yield*/, question_1.default.findByIdAndUpdate(req.body.id, {
                         $inc: {
-                            'amountOfanswers.all': 1,
-                            'amountOfanswers.correct': userAnsweredCorrect ? 1 : 0,
+                            "amountOfanswers.all": 1,
+                            "amountOfanswers.correct": userAnsweredCorrect ? 1 : 0,
                         },
                     })];
             case 2:
@@ -280,8 +325,8 @@ router.patch('/answer', auth_1.auth, function (req, res) { return __awaiter(void
                 return [4 /*yield*/, user_1.default.findByIdAndUpdate(req.user._id, {
                         $push: { answeredQuestions: req.body.id },
                         $inc: {
-                            'points.total': userAnsweredCorrect ? 1 : 0,
-                            'points.answers': userAnsweredCorrect ? 1 : 0,
+                            "points.total": userAnsweredCorrect ? 1 : 0,
+                            "points.answers": userAnsweredCorrect ? 1 : 0,
                         },
                     })];
             case 3:
@@ -294,39 +339,40 @@ router.patch('/answer', auth_1.auth, function (req, res) { return __awaiter(void
                 });
                 return [3 /*break*/, 5];
             case 4:
-                error_4 = _a.sent();
+                error_5 = _a.sent();
                 return [2 /*return*/, res.status(400).json({
-                        error: error_4,
+                        error: error_5,
                     })];
             case 5: return [2 /*return*/];
         }
     });
 }); });
 // Delete question
-router.delete('/', auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+router.delete("/", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var question;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0: return [4 /*yield*/, question_1.default.findOneAndDelete({
                     _id: req.query.id,
-                    'createdBy.id': req.user._id,
+                    "createdBy.id": req.user._id,
                 })];
             case 1:
                 question = _a.sent();
                 if (!question) {
                     return [2 /*return*/, res.status(400).json({
-                            error: 'Failed to Delete Your question. Try again later.',
+                            error: "Failed to Delete Your question. Try again later.",
                         })];
                 }
                 return [4 /*yield*/, user_1.default.findByIdAndUpdate(req.user._id, {
                         $pull: { postQuestions: req.query.id },
-                        $inc: { 'points.total': -1, 'points.questions': -1 },
+                        $inc: { "points.total": -1, "points.questions": -1 },
                     })];
             case 2:
                 _a.sent();
                 res.json({
                     success: true,
-                    msg: 'Your question has been successfully deleted!',
+                    id: req.query.id,
+                    msg: "Your question has been successfully deleted!",
                 });
                 return [2 /*return*/];
         }

@@ -46,7 +46,7 @@ var auth_1 = require("../middleware/auth");
 var sendEmail_1 = __importDefault(require("../utils/sendEmail"));
 var generateVerificationCode_1 = __importDefault(require("../utils/generateVerificationCode"));
 // POST (Register and Login Admin and User)
-router.post('/', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+router.post("/", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var loginUser, user, doc;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -66,7 +66,7 @@ router.post('/', function (req, res) { return __awaiter(void 0, void 0, void 0, 
                     var sendRegistrationMail = function () { return __awaiter(void 0, void 0, void 0, function () {
                         return __generator(this, function (_a) {
                             switch (_a.label) {
-                                case 0: return [4 /*yield*/, (0, sendEmail_1.default)(user.email, 'Verify Email in AskYourNation app', message)];
+                                case 0: return [4 /*yield*/, (0, sendEmail_1.default)(user.email, "Verify Email in AskYourNation app", message)];
                                 case 1: return [2 /*return*/, _a.sent()];
                             }
                         });
@@ -74,7 +74,7 @@ router.post('/', function (req, res) { return __awaiter(void 0, void 0, void 0, 
                     sendRegistrationMail();
                     res.json({
                         register: true,
-                        message: 'We have sent a message to your email address. Confirm your email address to finish registration.',
+                        message: "We have sent a message to your email address. Confirm your email address to finish registration.",
                     });
                 });
                 return [3 /*break*/, 4];
@@ -86,7 +86,7 @@ router.post('/', function (req, res) { return __awaiter(void 0, void 0, void 0, 
                     // if NOT send an Error
                     if (!isMatch)
                         return res.status(400).json({
-                            error: 'The password is incorrect',
+                            error: "The password is incorrect",
                         });
                     // passwords is match!
                     loginUser.generateToken(function (err, user) {
@@ -95,15 +95,15 @@ router.post('/', function (req, res) { return __awaiter(void 0, void 0, void 0, 
                         // check if Email is verify...
                         if (!user.verifiedEmail)
                             return res.status(401).json({
-                                error: 'Your email address has not been verified',
+                                error: "Your email address has not been verified",
                             });
                         // if Email is verify... check if user is active...
                         if (!user.active)
                             return res.status(403).json({
-                                error: 'This user has been removed and cannot be used',
+                                error: "This user has been removed and cannot be used",
                             });
                         // if is active... login!
-                        res.cookie('auth', user.token).send(user.token);
+                        res.cookie("auth", user.token).send(user.token);
                     });
                 });
                 _a.label = 4;
@@ -112,7 +112,7 @@ router.post('/', function (req, res) { return __awaiter(void 0, void 0, void 0, 
     });
 }); });
 // Verify Email
-router.get('/verify/:id/:token', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+router.get("/verify/:id/:token", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var user, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -122,9 +122,9 @@ router.get('/verify/:id/:token', function (req, res) { return __awaiter(void 0, 
             case 1:
                 user = _a.sent();
                 if (!user)
-                    return [2 /*return*/, res.status(400).send('Invalid link')];
+                    return [2 /*return*/, res.status(400).send("Invalid link")];
                 if (!user.token)
-                    return [2 /*return*/, res.status(400).send('Invalid link')];
+                    return [2 /*return*/, res.status(400).send("Invalid link")];
                 return [4 /*yield*/, user_1.default.findByIdAndUpdate(user._id, {
                         verifiedEmail: true,
                         token: null,
@@ -143,42 +143,68 @@ router.get('/verify/:id/:token', function (req, res) { return __awaiter(void 0, 
 }); });
 //GET AND UPDATE (User personal profile)
 //GET (User profile)
-router.get('/', auth_1.auth, function (req, res) {
-    res.json({
-        id: req.user._id,
-        email: req.user.email,
-        firstName: req.user.firstName,
-        lastName: req.user.lastName,
-        nation: req.user.nation,
-        active: req.user.active,
-        points: req.user.points,
-        postQuestions: req.user.postQuestions,
-        answeredQuestions: req.user.answeredQuestions,
-        token: req.user.token,
+router.get("/", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var sort, list, index;
+    var _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                sort = req.query.sortBy
+                    ? "points.".concat(req.query.sortBy)
+                    : "points.total";
+                return [4 /*yield*/, user_1.default.find({
+                        active: true,
+                        verifiedEmail: true,
+                        _id: { $ne: "64d893e184dc3ff40a2f0f62" },
+                    }).sort((_a = {},
+                        _a[sort] = "desc",
+                        _a))];
+            case 1:
+                list = _b.sent();
+                index = list.findIndex(function (x) { return x._id.toString() === req.user._id.toString(); });
+                res.json({
+                    id: req.user._id,
+                    email: req.user.email,
+                    firstName: req.user.firstName,
+                    lastName: req.user.lastName,
+                    nation: req.user.nation,
+                    active: req.user.active,
+                    points: req.user.points,
+                    postQuestions: req.user.postQuestions,
+                    answeredQuestions: req.user.answeredQuestions,
+                    rank: index + 1,
+                    sounds: req.user.sounds,
+                    token: req.user.token,
+                });
+                return [2 /*return*/];
+        }
     });
-});
-router.get('/top-ten', auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+}); });
+router.get("/top-ten", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var sort, limit, list;
     var _a;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                sort = req.query.sortBy ? "points.".concat(req.query.sortBy) : 'points.total';
+                sort = req.query.sortBy
+                    ? "points.".concat(req.query.sortBy)
+                    : "points.total";
                 limit = req.query.limit || 10;
                 return [4 /*yield*/, user_1.default.find({
                         active: true,
                         verifiedEmail: true,
-                        _id: { $ne: '64d893e184dc3ff40a2f0f62' },
+                        _id: { $ne: "64d893e184dc3ff40a2f0f62" },
                     })
                         .limit(limit)
                         .sort((_a = {},
-                        _a[sort] = 'desc',
+                        _a[sort] = "desc",
                         _a))];
             case 1:
                 list = _b.sent();
                 res.json({
                     list: list.map(function (user) {
                         return {
+                            id: user._id,
                             firstName: user.firstName,
                             lastName: user.lastName,
                             nation: user.nation,
@@ -192,7 +218,7 @@ router.get('/top-ten', auth_1.auth, function (req, res) { return __awaiter(void 
 }); });
 // PATCH
 // User update profile
-router.patch('/update', auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+router.patch("/update", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var profile, user;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -203,18 +229,18 @@ router.patch('/update', auth_1.auth, function (req, res) { return __awaiter(void
                     nation: req.body.nation,
                 };
                 return [4 /*yield*/, user_1.default.findByIdAndUpdate(req.body.id, profile, {
-                        returnDocument: 'after',
+                        returnDocument: "after",
                     })];
             case 1:
                 user = _a.sent();
                 if (!user) {
                     return [2 /*return*/, res.status(400).json({
-                            error: 'Failed to Update Your Profile. Try again later.',
+                            error: "Failed to Update Your Profile. Try again later.",
                         })];
                 }
                 res.json({
                     success: true,
-                    msg: 'Your profile has been successfully updated!',
+                    msg: "Your profile has been successfully updated!",
                     profile: user,
                 });
                 return [2 /*return*/];
@@ -222,7 +248,7 @@ router.patch('/update', auth_1.auth, function (req, res) { return __awaiter(void
     });
 }); });
 // CHANGE PASSWORD
-router.patch('/change-password', auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+router.patch("/change-password", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var loginUser;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -231,7 +257,7 @@ router.patch('/change-password', auth_1.auth, function (req, res) { return __awa
                 loginUser = _a.sent();
                 if (!loginUser) {
                     return [2 /*return*/, res.status(400).json({
-                            error: 'The user does not exist',
+                            error: "The user does not exist",
                         })];
                 }
                 else {
@@ -246,7 +272,7 @@ router.patch('/change-password', auth_1.auth, function (req, res) { return __awa
                                     // if NOT send an Error
                                     if (!isMatch)
                                         return [2 /*return*/, res.status(400).json({
-                                                error: 'Password cannot be changed, because you did not enter the correct password',
+                                                error: "Password cannot be changed, because you did not enter the correct password",
                                             })];
                                     // if passwords is match.... change it!
                                     loginUser.password = req.body.newPassword;
@@ -258,12 +284,12 @@ router.patch('/change-password', auth_1.auth, function (req, res) { return __awa
                                     doc = _a.sent();
                                     if (!doc) {
                                         return [2 /*return*/, res.status(400).json({
-                                                error: 'Failed to Update Your Profile. Try again later.',
+                                                error: "Failed to Update Your Profile. Try again later.",
                                             })];
                                     }
                                     res.json({
                                         success: true,
-                                        msg: 'Your password has been successfully changed!',
+                                        msg: "Your password has been successfully changed!",
                                     });
                                     return [3 /*break*/, 4];
                                 case 3:
@@ -282,7 +308,7 @@ router.patch('/change-password', auth_1.auth, function (req, res) { return __awa
 }); });
 // RESET PASSWORD
 // step 1: send verification code to email
-router.patch('/reset-password', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+router.patch("/reset-password", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var loginUser, pinCode, message_1, sendVerificationMail, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -291,11 +317,11 @@ router.patch('/reset-password', function (req, res) { return __awaiter(void 0, v
                 loginUser = _a.sent();
                 if (!loginUser)
                     return [2 /*return*/, res.status(400).json({
-                            error: 'Your email address is incorrect',
+                            error: "Your email address is incorrect",
                         })];
                 if (!loginUser.active || !loginUser.verifiedEmail)
                     return [2 /*return*/, res.status(400).json({
-                            error: 'Password cannot be reset for this user',
+                            error: "Password cannot be reset for this user",
                         })];
                 pinCode = (0, generateVerificationCode_1.default)();
                 loginUser.verificationCode = {
@@ -312,15 +338,15 @@ router.patch('/reset-password', function (req, res) { return __awaiter(void 0, v
                 sendVerificationMail = function () { return __awaiter(void 0, void 0, void 0, function () {
                     return __generator(this, function (_a) {
                         switch (_a.label) {
-                            case 0: return [4 /*yield*/, (0, sendEmail_1.default)(loginUser.email, 'AskYourNation app reset password', message_1)];
+                            case 0: return [4 /*yield*/, (0, sendEmail_1.default)(loginUser.email, "AskYourNation app reset password", message_1)];
                             case 1: return [2 /*return*/, _a.sent()];
                         }
                     });
                 }); };
                 sendVerificationMail();
-                res.clearCookie('auth').json({
+                res.clearCookie("auth").json({
                     register: true,
-                    message: 'We have sent a verification code to your email address. This code is valid for 5 minutes.',
+                    message: "We have sent a verification code to your email address. This code is valid for 5 minutes.",
                 });
                 return [3 /*break*/, 5];
             case 4:
@@ -333,7 +359,7 @@ router.patch('/reset-password', function (req, res) { return __awaiter(void 0, v
     });
 }); });
 // step 2: enter verification code by the user.
-router.patch('/verification-code', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+router.patch("/verification-code", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var loginUser;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -342,12 +368,12 @@ router.patch('/verification-code', function (req, res) { return __awaiter(void 0
                 loginUser = _a.sent();
                 if (!loginUser)
                     return [2 /*return*/, res.status(400).json({
-                            error: 'Your email address is incorrect',
+                            error: "Your email address is incorrect",
                         })];
                 if (loginUser.verificationCode.expired < new Date().getTime() ||
                     !loginUser.verificationCode.code)
                     return [2 /*return*/, res.status(400).json({
-                            error: 'This verification code has expired',
+                            error: "This verification code has expired",
                         })];
                 loginUser.compareVerification(req.body.verificationCode, function (err, isMatch) { return __awaiter(void 0, void 0, void 0, function () {
                     return __generator(this, function (_a) {
@@ -358,7 +384,7 @@ router.patch('/verification-code', function (req, res) { return __awaiter(void 0
                                 // if NOT send an Error
                                 if (!isMatch)
                                     return [2 /*return*/, res.status(400).json({
-                                            error: 'The verification code is incorrect',
+                                            error: "The verification code is incorrect",
                                         })];
                                 // verification code is match!
                                 // delete verification code from DB
@@ -377,18 +403,18 @@ router.patch('/verification-code', function (req, res) { return __awaiter(void 0
                                     // check if Email is verify...
                                     if (!user.verifiedEmail)
                                         return res.status(401).json({
-                                            error: 'Your email address has not been verified',
+                                            error: "Your email address has not been verified",
                                         });
                                     // if Email is verify... check if user is active...
                                     if (!user.active)
                                         return res.status(403).json({
-                                            error: 'This user has been removed and cannot be used',
+                                            error: "This user has been removed and cannot be used",
                                         });
                                     // if is active... login!
-                                    res.cookie('auth', user.token).json({
+                                    res.cookie("auth", user.token).json({
                                         verification: true,
-                                        token: user.token,
-                                        message: 'Verification passed successfully. You must now reset your password.',
+                                        id: user._id,
+                                        message: "Verification passed successfully. You must now reset your password.",
                                     });
                                 });
                                 return [2 /*return*/];
@@ -400,7 +426,7 @@ router.patch('/verification-code', function (req, res) { return __awaiter(void 0
     });
 }); });
 // step 3: reset password by auth user and time expired.
-router.patch('/change-password-after-reset', auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+router.patch("/change-password-after-reset", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var loginUser, doc, err_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -409,11 +435,11 @@ router.patch('/change-password-after-reset', auth_1.auth, function (req, res) { 
                 loginUser = _a.sent();
                 if (!loginUser)
                     return [2 /*return*/, res.status(400).json({
-                            error: 'The user does not exist',
+                            error: "The user does not exist",
                         })];
                 if (loginUser.verificationCode.expired < new Date().getTime())
                     return [2 /*return*/, res.status(400).json({
-                            error: 'Verification code has expired, password change failed',
+                            error: "Verification code has expired, password change failed",
                         })];
                 loginUser.password = req.body.newPassword;
                 _a.label = 2;
@@ -424,12 +450,12 @@ router.patch('/change-password-after-reset', auth_1.auth, function (req, res) { 
                 doc = _a.sent();
                 if (!doc) {
                     return [2 /*return*/, res.status(400).json({
-                            error: 'Failed to Update Your Profile. Try again later.',
+                            error: "Failed to Update Your Profile. Try again later.",
                         })];
                 }
                 res.json({
                     success: true,
-                    msg: 'Your password has been successfully changed!',
+                    message: "Your password has been successfully changed!",
                 });
                 return [3 /*break*/, 5];
             case 4:
@@ -441,9 +467,31 @@ router.patch('/change-password-after-reset', auth_1.auth, function (req, res) { 
         }
     });
 }); });
+router.patch("/sounds", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var user;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, user_1.default.findByIdAndUpdate(req.query.id, {
+                    sounds: req.query.sounds,
+                })];
+            case 1:
+                user = _a.sent();
+                if (!user) {
+                    return [2 /*return*/, res.status(400).json({
+                            error: "Failed to update Your Profile. Try again later.",
+                        })];
+                }
+                res.json({
+                    success: true,
+                    message: "Your profile has been successfully updated!",
+                });
+                return [2 /*return*/];
+        }
+    });
+}); });
 // DELETE
 // Delete user profile
-router.delete('/', auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+router.delete("/", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var user;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -455,12 +503,12 @@ router.delete('/', auth_1.auth, function (req, res) { return __awaiter(void 0, v
                 user = _a.sent();
                 if (!user) {
                     return [2 /*return*/, res.status(400).json({
-                            error: 'Failed to Delete Your Profile. Try again later.',
+                            error: "Failed to Delete Your Profile. Try again later.",
                         })];
                 }
                 res.json({
                     success: true,
-                    msg: 'Your profile has been successfully deleted!',
+                    message: "Your profile has been successfully deleted!",
                 });
                 return [2 /*return*/];
         }
