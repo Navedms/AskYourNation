@@ -1,4 +1,3 @@
-import { log } from "console";
 import nodemailer from "nodemailer";
 
 interface MailSettings {

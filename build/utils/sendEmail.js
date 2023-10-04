@@ -41,12 +41,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var nodemailer_1 = __importDefault(require("nodemailer"));
 var sendEmail = function (email, subject, text) { return __awaiter(void 0, void 0, void 0, function () {
-    var transporter, error_1;
+    var transporter_1, result, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                transporter = nodemailer_1.default.createTransport({
+                transporter_1 = nodemailer_1.default.createTransport({
                     host: process.env.EMAIL_HOST,
                     port: process.env.EMAIL_PORT,
                     secure: true,
@@ -55,19 +55,29 @@ var sendEmail = function (email, subject, text) { return __awaiter(void 0, void 
                         pass: process.env.EMAIL_PASS,
                     },
                 });
-                return [4 /*yield*/, transporter.sendMail({
-                        from: process.env.EMAIL_USER,
-                        to: email,
-                        subject: subject,
-                        html: text,
+                return [4 /*yield*/, new Promise(function (resolve, reject) {
+                        transporter_1.sendMail({
+                            from: process.env.EMAIL_USER,
+                            to: email,
+                            subject: subject,
+                            html: text,
+                        }, function (error, response) {
+                            if (error) {
+                                console.log(error);
+                                reject(error);
+                            }
+                            else {
+                                resolve("email sent sucessfully");
+                            }
+                        });
                     })];
             case 1:
-                _a.sent();
-                console.log('email sent sucessfully');
+                result = _a.sent();
+                console.log(result);
                 return [3 /*break*/, 3];
             case 2:
                 error_1 = _a.sent();
-                console.log('email not sent');
+                console.log("email not sent");
                 console.log(error_1);
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
