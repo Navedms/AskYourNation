@@ -190,18 +190,21 @@ router.patch("/report", auth, async (req: any, res: Response) => {
 
 		const message = `<p><b>User report a question:</b><br><br><b>Details of the reporter:</b><br>Id: ${req.user._id}<br>FirstName: ${req.user.firstName}<br>LastName: ${req.user.lastName}<br><br><b>Question details:</b><br>Id: ${question._id}<br>Question: ${question.question}<br>Answers: ${question.answers.options}<br>Correct Answer Index: ${question.answers.correctIndex}<br>Created By:<br> - Id: ${question.createdBy.id}<br> - firstName: ${question.createdBy.firstName}<br> - lastName: ${question.createdBy.lastName}<br><br><b>The details of the report:</b><br>Reason: ${req.body.reason}<br><br>Free Text: ${req.body.text}</p>`;
 
-		const sendVerificationMail = async () =>
-			await sendEmail(
-				process.env.EMAIL_USER as string,
-				`User report a question: ${req.body.id} - AskYourNation app`,
-				message
-			);
-		sendVerificationMail();
-
-		res.json({
-			success: true,
-			msg: "You have successfully reported this question!",
-		});
+		const result = await sendEmail(
+			process.env.EMAIL_USER as string,
+			`User report a question: ${req.body.id} - AskYourNation app`,
+			message
+		);
+		if (result) {
+			res.json({
+				success: true,
+				msg: "You have successfully reported this question!",
+			});
+		} else {
+			return res.status(400).json({
+				error: "Failed to report this question.",
+			});
+		}
 	} catch (error) {
 		return res.status(400).json({
 			error,

@@ -35,12 +35,12 @@ const sendEmail = async (email: string, subject: string, text: string) => {
 						console.log(error);
 						reject(error);
 					} else {
-						resolve("email sent sucessfully");
+						resolve(true);
 					}
 				}
 			);
 		});
-		console.log(result);
+		return result;
 	} catch (error) {
 		console.log("email not sent");
 		console.log(error);

@@ -18,22 +18,26 @@ router.post("/", async (req: Request, res: Response) => {
 		const doc = await user.save();
 
 		// register new user and... send email to verify your email!
-		doc.generateToken((err, user) => {
-			if (err) return res.status(400).send(err);
-			const message = `<p><b>Hello <strong>${user.firstName}</strong>, and welcome to AskYourNation!</b><br><br> Please click the link below to verify your email address:<br> ${process.env.SERVER_URL}/api/users/verify/${user._id}/${user.token}<br><br>Once your email address is verified, you can access your account in the app!<br><br>best regards,<br>AskYourNation App Team.</p>`;
-			const sendRegistrationMail = async () =>
-				await sendEmail(
-					user.email,
-					"Verify Email in AskYourNation app",
-					message
-				);
-			sendRegistrationMail();
-			res.json({
-				register: true,
-				message:
-					"We have sent a message to your email address. Confirm your email address to finish registration.",
+		const message = `<p><b>Hello <strong>${user.firstName}</strong>, and welcome to AskYourNation!</b><br><br> Please click the link below to verify your email address:<br> ${process.env.SERVER_URL}/api/users/verify/${user._id}/${user.token}<br><br>Once your email address is verified, you can access your account in the app!<br><br>best regards,<br>AskYourNation App Team.</p>`;
+		const result = await sendEmail(
+			user.email,
+			"Verify Email in AskYourNation app",
+			message
+		);
+		if (result) {
+			doc.generateToken((err, user) => {
+				if (err) return res.status(400).send(err);
+				res.json({
+					register: true,
+					message:
+						"We have sent a message to your email address. Confirm your email address to finish registration.",
+				});
 			});
-		});
+		} else {
+			return res.status(400).json({
+				error: "Failed to send registration link to your email address",
+			});
+		}
 	} else {
 		// else compare passwords and make a login
 		loginUser.comparePassword(req.body.password, (err, isMatch) => {
@@ -244,18 +248,23 @@ router.patch("/reset-password", async (req: Request, res: Response) => {
 	try {
 		await loginUser.save();
 		const message = `<p><b>Hello <strong>${loginUser.firstName}</strong>,</b><br>Your AskYourNation verification code is: <b>${pinCode}</b><br>Please enter this code in the app to reset your password.<br>This code is valid for 5 minutes.<br><br>best regards,<br>AskYourNation App Team.</p>`;
-		const sendVerificationMail = async () =>
-			await sendEmail(
-				loginUser.email,
-				"AskYourNation app reset password",
-				message
-			);
-		sendVerificationMail();
-		res.clearCookie("auth").json({
-			register: true,
-			message:
-				"We have sent a verification code to your email address. This code is valid for 5 minutes.",
-		});
+
+		const result = await sendEmail(
+			loginUser.email,
+			"AskYourNation app reset password",
+			message
+		);
+		if (result) {
+			res.clearCookie("auth").json({
+				register: true,
+				message:
+					"We have sent a verification code to your email address. This code is valid for 5 minutes.",
+			});
+		} else {
+			return res.status(400).json({
+				error: "Failed to send verification code to your email address",
+			});
+		}
 	} catch (err) {
 		return res.status(400).json({
 			error: err,
