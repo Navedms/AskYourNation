@@ -5,6 +5,7 @@ import User from "../models/user";
 import { auth } from "../middleware/auth";
 import sendEmail from "../utils/sendEmail";
 import generateVerificationCode from "../utils/generateVerificationCode";
+import { log } from "console";
 
 // POST (Register and Login Admin and User)
 
@@ -14,10 +15,15 @@ router.post("/", async (req: Request, res: Response) => {
 
 	if (!loginUser) {
 		// register new admin
-		const user = new User(req.body);
+		let user = new User(req.body);
 		const doc = await user.save();
 
 		// register new user and... send email to verify your email!
+
+		doc.generateToken((err, doc) => {
+			if (err) return res.status(400).send(err);
+			user.token = doc.token;
+		});
 		const message = `<p><b>Hello <strong>${user.firstName}</strong>, and welcome to AskYourNation!</b><br><br> Please click the link below to verify your email address:<br> ${process.env.SERVER_URL}/api/users/verify/${user._id}/${user.token}<br><br>Once your email address is verified, you can access your account in the app!<br><br>best regards,<br>AskYourNation App Team.</p>`;
 		const result = await sendEmail(
 			user.email,
@@ -25,13 +31,10 @@ router.post("/", async (req: Request, res: Response) => {
 			message
 		);
 		if (result) {
-			doc.generateToken((err, user) => {
-				if (err) return res.status(400).send(err);
-				res.json({
-					register: true,
-					message:
-						"We have sent a message to your email address. Confirm your email address to finish registration.",
-				});
+			res.json({
+				register: true,
+				message:
+					"We have sent a message to your email address. Confirm your email address to finish registration.",
 			});
 		} else {
 			return res.status(400).json({
