@@ -10,10 +10,20 @@ import { log } from "console";
 // POST (Register and Login Admin and User)
 
 router.post("/", async (req: Request, res: Response) => {
+	if (req.body.firstName && req.body.lastName) {
+		req.body.type = "register";
+	} else {
+		req.body.type = "login";
+	}
+
 	// check if email already register (User)...
 	const loginUser = await User.findOne({ email: req.body.email });
-
-	if (!loginUser) {
+	if (!loginUser && req.body.type === "login") {
+		return res.status(400).json({
+			error: "Email address does not exist",
+		});
+	}
+	if (!loginUser && req.body.type === "register") {
 		// register new admin
 		let user = new User(req.body);
 		const doc = await user.save();
@@ -41,7 +51,7 @@ router.post("/", async (req: Request, res: Response) => {
 				error: "Failed to send registration link to your email address",
 			});
 		}
-	} else {
+	} else if (loginUser && req.body.type === "login") {
 		// else compare passwords and make a login
 		loginUser.comparePassword(req.body.password, (err, isMatch) => {
 			if (err) throw err;
@@ -68,6 +78,10 @@ router.post("/", async (req: Request, res: Response) => {
 				// if is active... login!
 				res.cookie("auth", user.token).send(user.token);
 			});
+		});
+	} else if (loginUser && req.body.type === "register") {
+		return res.status(400).json({
+			error: "Email address already exists. It is not possible to register again with this email address",
 		});
 	}
 });
