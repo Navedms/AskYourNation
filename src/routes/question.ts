@@ -14,7 +14,7 @@ router.get("/", auth, async (req: any, res: Response) => {
 	const skip = req.query.skip || 0;
 
 	const list = await Question.find({
-		"createdBy.id": { $ne: req.user._id }, // filter questions that the user post
+		"createdBy.id": { $ne: req.user._id, $nin: req.user.blockUsers }, // filter questions that the user post and questions from users that the user block
 		_id: { $nin: req.user.answeredQuestions }, // filter questions that the user has already answered
 	})
 		.limit(limit)
@@ -181,10 +181,12 @@ router.patch("/report", auth, async (req: any, res: Response) => {
 			});
 		}
 
-		// add question id to the user answered list
-		await User.findByIdAndUpdate(req.user._id, {
-			$push: { answeredQuestions: req.body.id },
-		});
+		// block user - add userId to IDs I dont want to see their questions
+		if (req.body.blockUser) {
+			await User.findByIdAndUpdate(req.user._id, {
+				$push: { blockUsers: question.createdBy.id },
+			});
+		}
 
 		// send email report
 
@@ -198,7 +200,9 @@ router.patch("/report", auth, async (req: any, res: Response) => {
 		if (result) {
 			res.json({
 				success: true,
-				msg: "You have successfully reported this question!",
+				msg: req.body.blockUser
+					? "You have successfully reported this question and block this user!"
+					: "You have successfully reported this question!",
 			});
 		} else {
 			return res.status(400).json({

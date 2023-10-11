@@ -32,6 +32,7 @@ export interface IUser {
 	points?: Points;
 	postQuestions: Schema.Types.ObjectId[];
 	answeredQuestions: Schema.Types.ObjectId[];
+	blockUsers: Schema.Types.ObjectId[];
 	token: string;
 	verificationCode: VerificationCode;
 }
@@ -110,6 +111,9 @@ const UserSchema: Schema = new Schema(
 			type: [Schema.Types.ObjectId],
 		},
 		answeredQuestions: {
+			type: [Schema.Types.ObjectId],
+		},
+		blockUsers: {
 			type: [Schema.Types.ObjectId],
 		},
 		token: {
