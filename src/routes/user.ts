@@ -24,7 +24,17 @@ router.post("/", async (req: Request, res: Response) => {
 		});
 	}
 	if (!loginUser && req.body.type === "register") {
-		// register new admin
+		const exsistName = await User.find({
+			firstName: req.body.firstName,
+			lastName: req.body.lastName,
+		});
+
+		if (exsistName.length > 0) {
+			return res.status(400).json({
+				error: "This name is already taken, please choose another name",
+			});
+		}
+		// register new user
 		let user = new User(req.body);
 		const doc = await user.save();
 
@@ -181,6 +191,16 @@ router.patch("/update", auth, async (req: any, res: Response) => {
 		lastName: req.body.lastName,
 		nation: req.body.nation,
 	};
+	const exsistName = await User.find({
+		firstName: req.body.firstName,
+		lastName: req.body.lastName,
+	});
+
+	if (exsistName.length > 0) {
+		return res.status(400).json({
+			error: "This name is already taken, please choose another name",
+		});
+	}
 	const user = await User.findByIdAndUpdate(req.body.id, profile, {
 		returnDocument: "after",
 	});
