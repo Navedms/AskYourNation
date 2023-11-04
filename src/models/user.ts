@@ -7,6 +7,7 @@ import { config } from "../config/config";
 export interface Nation {
 	name: string;
 	flag: string;
+	language?: string;
 }
 export interface VerificationCode {
 	code: string;
@@ -25,7 +26,8 @@ export interface IUser {
 	verifiedEmail: boolean;
 	password: string;
 	firstName: string;
-	lastName: string;
+	lastName?: string;
+	profilePic?: string;
 	nation: Nation;
 	active?: boolean;
 	sounds?: boolean;
@@ -60,7 +62,11 @@ const SALT_I = 10;
 const UserSchema: Schema = new Schema(
 	{
 		firstName: { type: String, required: true },
-		lastName: { type: String, required: true },
+		lastName: { type: String },
+		profilePic: {
+			data: Buffer,
+			contentType: String,
+		},
 		email: {
 			type: String,
 			required: true,
@@ -82,6 +88,9 @@ const UserSchema: Schema = new Schema(
 				type: String,
 			},
 			flag: {
+				type: String,
+			},
+			language: {
 				type: String,
 			},
 		},

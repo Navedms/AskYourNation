@@ -35,17 +35,21 @@ var startServer = function () {
     router.use(express_1.default.urlencoded({ extended: true }));
     router.use(express_1.default.json());
     router.use((0, cookie_parser_1.default)());
+    router.use(express_1.default.static("public"));
     // Routes
     router.use("/api/nations", nations_1.default);
     router.use("/api/users", user_1.default);
     router.use("/api/questions", question_1.default);
     // Error handling
+    router.use(function (error, req, res, next) {
+        console.log("This is the rejected field ->", error.field);
+    });
     router.use(function (req, res, next) {
         var error = new Error("Not Found");
         console.log(error);
         return res.status(404).json({ message: error.message });
     });
     router.listen(config_1.config.server.port, function () {
-        return console.log("Server listening on port ".concat(config_1.config.server.port, " mail host: ").concat(process.env.EMAIL_HOST, "\n port: ").concat(process.env.EMAIL_PORT, " user: ").concat(process.env.EMAIL_USER, " pass: ").concat(process.env.EMAIL_PASS));
+        return console.log("Server listening on port ".concat(config_1.config.server.port));
     });
 };

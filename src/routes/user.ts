@@ -1,16 +1,43 @@
 import express, { Request, Response } from "express";
+import multer from "multer";
 const router = express.Router();
 
 import User from "../models/user";
 import { auth } from "../middleware/auth";
 import sendEmail from "../utils/sendEmail";
 import generateVerificationCode from "../utils/generateVerificationCode";
+
+import { upload as uploadFiles } from "../middleware/uploadFiles";
 import { log } from "console";
 
-// POST (Register and Login Admin and User)
+const storage = multer.memoryStorage();
+
+const fileFilter = (req: any, file: any, cb: Function) => {
+	if (file.mimetype.split("/")[0] === "image") {
+		cb(null, true);
+	} else {
+		cb(new multer.MulterError("LIMIT_UNEXPECTED_FILE"), false);
+	}
+};
+
+const upload = multer({
+	storage,
+	fileFilter,
+	limits: { fileSize: 1000000000, files: 1 },
+});
+
+// POST (Register and Login User)
+router.post("/test", async (req: Request, res: Response) => {
+	console.log(req.body.test);
+
+	res.json({
+		test: true,
+		msg: "Your test",
+	});
+});
 
 router.post("/", async (req: Request, res: Response) => {
-	if (req.body.firstName && req.body.lastName) {
+	if (req.body.firstName) {
 		req.body.type = "register";
 	} else {
 		req.body.type = "login";
@@ -137,12 +164,15 @@ router.get("/", auth, async (req: any, res: Response) => {
 	const index = list.findIndex(
 		(x) => x._id.toString() === req.user._id.toString()
 	);
-
 	res.json({
 		id: req.user._id,
 		email: req.user.email,
 		firstName: req.user.firstName,
 		lastName: req.user.lastName,
+		profilePic:
+			req.user.profilePic?.toString() === "{}"
+				? undefined
+				: req.user.profilePic,
 		nation: req.user.nation,
 		active: req.user.active,
 		points: req.user.points,
@@ -174,6 +204,10 @@ router.get("/top-ten", auth, async (req: any, res: Response) => {
 				id: user._id,
 				firstName: user.firstName,
 				lastName: user.lastName,
+				profilePic:
+					user.profilePic?.toString() === "{}"
+						? undefined
+						: user.profilePic,
 				nation: user.nation,
 				points: user.points,
 			};
@@ -215,6 +249,52 @@ router.patch("/update", auth, async (req: any, res: Response) => {
 		profile: user,
 	});
 });
+
+// User update profile v2
+
+router.patch(
+	"/update/v2",
+	[auth, upload.array("file"), uploadFiles],
+	async (req: any, res: Response) => {
+		const profile: any = {};
+		if (req.body.firstName) profile.firstName = req.body.firstName;
+		if (req.body.lastName) profile.lastName = req.body.lastName;
+		profile.nation = {
+			name: req.body.nationName,
+			flag: req.body.nationFlag,
+			language: req.bod.nationLanguage || "eng",
+		};
+		if (req.images || req.body.deletProfilePic === "yes") {
+			profile.profilePic =
+				req.body.deletProfilePic === "yes" ? "" : req.images;
+		}
+
+		const exsistName = await User.find({
+			firstName: req.body.firstName,
+			lastName: req.body.lastName,
+			_id: { $ne: req.body.id },
+		});
+
+		if (exsistName.length > 0) {
+			return res.status(400).json({
+				error: "This name is already taken, please choose another name",
+			});
+		}
+		const user = await User.findByIdAndUpdate(req.body.id, profile, {
+			returnDocument: "after",
+		});
+		if (!user) {
+			return res.status(400).json({
+				error: "Failed to Update Your Profile. Try again later.",
+			});
+		}
+		res.json({
+			success: true,
+			msg: "Your profile has been successfully updated!",
+			// profile: user,
+		});
+	}
+);
 
 // CHANGE PASSWORD
 

@@ -55,7 +55,7 @@ router.get("/", auth_1.auth, function (req, res) { return __awaiter(void 0, void
                 limit = req.query.limit || 20;
                 skip = req.query.skip || 0;
                 return [4 /*yield*/, question_1.default.find({
-                        "createdBy.id": { $ne: req.user._id },
+                        "createdBy.id": { $ne: req.user._id, $nin: req.user.blockUsers },
                         _id: { $nin: req.user.answeredQuestions }, // filter questions that the user has already answered
                     })
                         .limit(limit)
@@ -241,11 +241,11 @@ router.patch("/rating", auth_1.auth, function (req, res) { return __awaiter(void
 }); });
 // report question
 router.patch("/report", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var question, message_1, sendVerificationMail, error_4;
+    var question, message, result, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 3, , 4]);
+                _a.trys.push([0, 5, , 6]);
                 return [4 /*yield*/, question_1.default.findById(req.body.id).select("+answers.correctIndex")];
             case 1:
                 question = _a.sent();
@@ -254,34 +254,38 @@ router.patch("/report", auth_1.auth, function (req, res) { return __awaiter(void
                             error: "Failed to report this question. It has already been deleted.",
                         })];
                 }
-                // add question id to the user answered list
+                if (!req.body.blockUser) return [3 /*break*/, 3];
                 return [4 /*yield*/, user_1.default.findByIdAndUpdate(req.user._id, {
-                        $push: { answeredQuestions: req.body.id },
+                        $push: { blockUsers: question.createdBy.id },
                     })];
             case 2:
-                // add question id to the user answered list
                 _a.sent();
-                message_1 = "<p><b>User report a question:</b><br><br><b>Details of the reporter:</b><br>Id: ".concat(req.user._id, "<br>FirstName: ").concat(req.user.firstName, "<br>LastName: ").concat(req.user.lastName, "<br><br><b>Question details:</b><br>Id: ").concat(question._id, "<br>Question: ").concat(question.question, "<br>Answers: ").concat(question.answers.options, "<br>Correct Answer Index: ").concat(question.answers.correctIndex, "<br>Created By:<br> - Id: ").concat(question.createdBy.id, "<br> - firstName: ").concat(question.createdBy.firstName, "<br> - lastName: ").concat(question.createdBy.lastName, "<br><br><b>The details of the report:</b><br>Reason: ").concat(req.body.reason, "<br><br>Free Text: ").concat(req.body.text, "</p>");
-                sendVerificationMail = function () { return __awaiter(void 0, void 0, void 0, function () {
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0: return [4 /*yield*/, (0, sendEmail_1.default)(process.env.EMAIL_USER, "User report a question: ".concat(req.body.id, " - AskYourNation app"), message_1)];
-                            case 1: return [2 /*return*/, _a.sent()];
-                        }
-                    });
-                }); };
-                sendVerificationMail();
-                res.json({
-                    success: true,
-                    msg: "You have successfully reported this question!",
-                });
-                return [3 /*break*/, 4];
+                _a.label = 3;
             case 3:
+                message = "<p><b>User report a question:</b><br><br><b>Details of the reporter:</b><br>Id: ".concat(req.user._id, "<br>FirstName: ").concat(req.user.firstName, "<br>LastName: ").concat(req.user.lastName, "<br><br><b>Question details:</b><br>Id: ").concat(question._id, "<br>Question: ").concat(question.question, "<br>Answers: ").concat(question.answers.options, "<br>Correct Answer Index: ").concat(question.answers.correctIndex, "<br>Created By:<br> - Id: ").concat(question.createdBy.id, "<br> - firstName: ").concat(question.createdBy.firstName, "<br> - lastName: ").concat(question.createdBy.lastName, "<br><br><b>The details of the report:</b><br>Reason: ").concat(req.body.reason, "<br><br>Free Text: ").concat(req.body.text, "</p>");
+                return [4 /*yield*/, (0, sendEmail_1.default)(process.env.EMAIL_USER, "User report a question: ".concat(req.body.id, " - AskYourNation app"), message)];
+            case 4:
+                result = _a.sent();
+                if (result) {
+                    res.json({
+                        success: true,
+                        msg: req.body.blockUser
+                            ? "You have successfully reported this question and block this user!"
+                            : "You have successfully reported this question!",
+                    });
+                }
+                else {
+                    return [2 /*return*/, res.status(400).json({
+                            error: "Failed to report this question.",
+                        })];
+                }
+                return [3 /*break*/, 6];
+            case 5:
                 error_4 = _a.sent();
                 return [2 /*return*/, res.status(400).json({
                         error: error_4,
                     })];
-            case 4: return [2 /*return*/];
+            case 6: return [2 /*return*/];
         }
     });
 }); });

@@ -42,6 +42,7 @@ const startServer = () => {
 	router.use(express.urlencoded({ extended: true }));
 	router.use(express.json());
 	router.use(cookieParser());
+	router.use(express.static("public"));
 
 	// Routes
 	router.use("/api/nations", nationRoutes);
@@ -49,6 +50,9 @@ const startServer = () => {
 	router.use("/api/questions", questionRoutes);
 
 	// Error handling
+	router.use((error: any, req: any, res: any, next: any) => {
+		console.log("This is the rejected field ->", error.field);
+	});
 	router.use((req, res, next) => {
 		const error = new Error("Not Found");
 		console.log(error);

@@ -10,7 +10,7 @@ var auth = function (req, res, next) {
     var token = ((_a = req.headers) === null || _a === void 0 ? void 0 : _a.authorization) || ((_b = req.cookies) === null || _b === void 0 ? void 0 : _b.auth);
     if (!token) {
         return res.status(401).json({
-            error: 'Access Denied',
+            error: "Access Denied",
         });
     }
     user_1.default.findByToken(token, function (err, user) {
@@ -18,15 +18,15 @@ var auth = function (req, res, next) {
             throw err;
         if (!user)
             return res.status(401).json({
-                error: 'Access Denied',
+                error: "Access Denied",
             });
         if (!user.verifiedEmail)
             return res.status(401).json({
-                error: 'Your email address has not been verified',
+                error: "Your email address has not been verified",
             });
         if (!user.active)
             return res.status(403).json({
-                error: 'This user has been removed and cannot be used',
+                error: "This user has been removed and cannot be used",
             });
         req.token = token;
         req.user = user;

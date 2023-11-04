@@ -70,6 +70,10 @@ var SALT_I = 10;
 var UserSchema = new mongoose_1.Schema({
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
+    profilePic: {
+        data: Buffer,
+        contentType: String,
+    },
     email: {
         type: String,
         required: true,
@@ -120,6 +124,9 @@ var UserSchema = new mongoose_1.Schema({
         type: [mongoose_1.Schema.Types.ObjectId],
     },
     answeredQuestions: {
+        type: [mongoose_1.Schema.Types.ObjectId],
+    },
+    blockUsers: {
         type: [mongoose_1.Schema.Types.ObjectId],
     },
     token: {

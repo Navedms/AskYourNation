@@ -35,52 +35,61 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-var nodemailer_1 = __importDefault(require("nodemailer"));
-var sendEmail = function (email, subject, text) { return __awaiter(void 0, void 0, void 0, function () {
-    var transporter_1, result, error_1;
+exports.getFile = exports.upload = void 0;
+var aws_sdk_1 = require("aws-sdk");
+var upload = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var s3, params;
     return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                transporter_1 = nodemailer_1.default.createTransport({
-                    host: process.env.EMAIL_HOST,
-                    port: process.env.EMAIL_PORT,
-                    secure: true,
-                    auth: {
-                        user: process.env.EMAIL_USER,
-                        pass: process.env.EMAIL_PASS,
-                    },
-                });
-                return [4 /*yield*/, new Promise(function (resolve, reject) {
-                        transporter_1.sendMail({
-                            from: process.env.EMAIL_USER,
-                            to: email,
-                            subject: subject,
-                            html: text,
-                        }, function (error, response) {
-                            if (error) {
-                                console.log(error);
-                                reject(error);
-                            }
-                            else {
-                                resolve(true);
-                            }
-                        });
-                    })];
-            case 1:
-                result = _a.sent();
-                return [2 /*return*/, result];
-            case 2:
-                error_1 = _a.sent();
-                console.log("email not sent");
-                console.log(error_1);
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+        if (!req.files)
+            return [2 /*return*/, next()];
+        s3 = new aws_sdk_1.S3();
+        params = {
+            Bucket: process.env.AWS_BUCKET_NAME /* required */,
+            ACL: "public-read",
+        };
+        s3.putBucketAcl(params, function (err, data) {
+            if (err)
+                console.log(err, err.stack); // an error occurred
+            else
+                console.log(data); // successful response
+        });
+        // const params = (req.files as Express.Multer.File[]).map((file) => {
+        // 	return {
+        // 		Bucket: process.env.AWS_BUCKET_NAME,
+        // 		Key: `uploads/${uuid()}-${file.originalname}.png`,
+        // 		Body: file.buffer,
+        // 		ACL: "public-read",
+        // 	};
+        // });
+        try {
+            // await Promise.all(
+            // 	params.map((param) => s3.upload(param as any).promise())
+            // );
+            // (req as any).images = params.map((file) => file.Key);
+            next();
         }
+        catch (err) {
+            return [2 /*return*/, res.status(400).json({
+                    error: err.message,
+                })];
+        }
+        return [2 /*return*/];
     });
 }); };
-exports.default = sendEmail;
+exports.upload = upload;
+var getFile = function (key) {
+    // const s3 = new S3();
+    // try {
+    // 	return await s3
+    // 		.getObject({
+    // 			Bucket: `${process.env.AWS_BUCKET_NAME}`,
+    // 			Key: `${key}`,
+    // 		})
+    // 		.promise();
+    // } catch (err) {
+    // 	return err;
+    // }
+    return "https://".concat(process.env.AWS_BUCKET_NAME, ".s3-").concat(process.env.AWS_REGION, ".amazonaws.com/").concat(key);
+};
+exports.getFile = getFile;
