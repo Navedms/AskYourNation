@@ -27,7 +27,7 @@ const upload = multer({
 
 // POST (Register and Login User)
 router.post("/test", async (req: Request, res: Response) => {
-	console.log(req.body.test);
+	console.log(req.body);
 
 	res.json({
 		test: true,
