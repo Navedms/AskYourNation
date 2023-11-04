@@ -8,47 +8,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var express_1 = __importDefault(require("express"));
-var multer_1 = __importDefault(require("multer"));
-var router = express_1.default.Router();
-var user_1 = __importDefault(require("../models/user"));
-var auth_1 = require("../middleware/auth");
-var sendEmail_1 = __importDefault(require("../utils/sendEmail"));
-var generateVerificationCode_1 = __importDefault(require("../utils/generateVerificationCode"));
-var uploadFiles_1 = require("../middleware/uploadFiles");
-var storage = multer_1.default.memoryStorage();
-var fileFilter = function (req, file, cb) {
+const express_1 = __importDefault(require("express"));
+const multer_1 = __importDefault(require("multer"));
+const router = express_1.default.Router();
+const user_1 = __importDefault(require("../models/user"));
+const auth_1 = require("../middleware/auth");
+const sendEmail_1 = __importDefault(require("../utils/sendEmail"));
+const generateVerificationCode_1 = __importDefault(require("../utils/generateVerificationCode"));
+const uploadFiles_1 = require("../middleware/uploadFiles");
+const storage = multer_1.default.memoryStorage();
+const fileFilter = (req, file, cb) => {
     if (file.mimetype.split("/")[0] === "image") {
         cb(null, true);
     }
@@ -56,591 +29,442 @@ var fileFilter = function (req, file, cb) {
         cb(new multer_1.default.MulterError("LIMIT_UNEXPECTED_FILE"), false);
     }
 };
-var upload = (0, multer_1.default)({
-    storage: storage,
-    fileFilter: fileFilter,
+const upload = (0, multer_1.default)({
+    storage,
+    fileFilter,
     limits: { fileSize: 1000000000, files: 1 },
 });
-// POST (Register and Login Admin and User)
-router.post("/", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var loginUser, exsistName, user_2, doc, message, result;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                if (req.body.firstName && req.body.lastName) {
-                    req.body.type = "register";
-                }
-                else {
-                    req.body.type = "login";
-                }
-                return [4 /*yield*/, user_1.default.findOne({ email: req.body.email })];
-            case 1:
-                loginUser = _a.sent();
-                if (!loginUser && req.body.type === "login") {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "Email address does not exist",
-                        })];
-                }
-                if (!(!loginUser && req.body.type === "register")) return [3 /*break*/, 5];
-                return [4 /*yield*/, user_1.default.find({
-                        firstName: req.body.firstName,
-                        lastName: req.body.lastName,
-                    })];
-            case 2:
-                exsistName = _a.sent();
-                if (exsistName.length > 0) {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "This name is already taken, please choose another name",
-                        })];
-                }
-                user_2 = new user_1.default(req.body);
-                return [4 /*yield*/, user_2.save()];
-            case 3:
-                doc = _a.sent();
-                // register new user and... send email to verify your email!
-                doc.generateToken(function (err, doc) {
-                    if (err)
-                        return res.status(400).send(err);
-                    user_2.token = doc.token;
+// POST (Register and Login User)
+router.post("/test", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(req.body.test);
+    res.json({
+        test: true,
+        msg: "Your test",
+    });
+}));
+router.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    if (req.body.firstName) {
+        req.body.type = "register";
+    }
+    else {
+        req.body.type = "login";
+    }
+    // check if email already register (User)...
+    const loginUser = yield user_1.default.findOne({ email: req.body.email });
+    if (!loginUser && req.body.type === "login") {
+        return res.status(400).json({
+            error: "Email address does not exist",
+        });
+    }
+    if (!loginUser && req.body.type === "register") {
+        const exsistName = yield user_1.default.find({
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+        });
+        if (exsistName.length > 0) {
+            return res.status(400).json({
+                error: "This name is already taken, please choose another name",
+            });
+        }
+        // register new user
+        let user = new user_1.default(req.body);
+        const doc = yield user.save();
+        // register new user and... send email to verify your email!
+        doc.generateToken((err, doc) => {
+            if (err)
+                return res.status(400).send(err);
+            user.token = doc.token;
+        });
+        const message = `<p><b>Hello <strong>${user.firstName}</strong>, and welcome to AskYourNation!</b><br><br> Please click the link below to verify your email address:<br> ${process.env.SERVER_URL}/api/users/verify/${user._id}/${user.token}<br><br>Once your email address is verified, you can access your account in the app!<br><br>best regards,<br>AskYourNation App Team.</p>`;
+        const result = yield (0, sendEmail_1.default)(user.email, "Verify Email in AskYourNation app", message);
+        if (result) {
+            res.json({
+                register: true,
+                message: "We have sent a message to your email address. Confirm your email address to finish registration.",
+            });
+        }
+        else {
+            return res.status(400).json({
+                error: "Failed to send registration link to your email address",
+            });
+        }
+    }
+    else if (loginUser && req.body.type === "login") {
+        // else compare passwords and make a login
+        loginUser.comparePassword(req.body.password, (err, isMatch) => {
+            if (err)
+                throw err;
+            // if NOT send an Error
+            if (!isMatch)
+                return res.status(400).json({
+                    error: "The password is incorrect",
                 });
-                message = "<p><b>Hello <strong>".concat(user_2.firstName, "</strong>, and welcome to AskYourNation!</b><br><br> Please click the link below to verify your email address:<br> ").concat(process.env.SERVER_URL, "/api/users/verify/").concat(user_2._id, "/").concat(user_2.token, "<br><br>Once your email address is verified, you can access your account in the app!<br><br>best regards,<br>AskYourNation App Team.</p>");
-                return [4 /*yield*/, (0, sendEmail_1.default)(user_2.email, "Verify Email in AskYourNation app", message)];
-            case 4:
-                result = _a.sent();
-                if (result) {
-                    res.json({
-                        register: true,
-                        message: "We have sent a message to your email address. Confirm your email address to finish registration.",
+            // passwords is match!
+            loginUser.generateToken((err, user) => {
+                if (err)
+                    return res.status(400).send(err);
+                // check if Email is verify...
+                if (!user.verifiedEmail)
+                    return res.status(401).json({
+                        error: "Your email address has not been verified",
                     });
-                }
-                else {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "Failed to send registration link to your email address",
-                        })];
-                }
-                return [3 /*break*/, 6];
-            case 5:
-                if (loginUser && req.body.type === "login") {
-                    // else compare passwords and make a login
-                    loginUser.comparePassword(req.body.password, function (err, isMatch) {
-                        if (err)
-                            throw err;
-                        // if NOT send an Error
-                        if (!isMatch)
-                            return res.status(400).json({
-                                error: "The password is incorrect",
-                            });
-                        // passwords is match!
-                        loginUser.generateToken(function (err, user) {
-                            if (err)
-                                return res.status(400).send(err);
-                            // check if Email is verify...
-                            if (!user.verifiedEmail)
-                                return res.status(401).json({
-                                    error: "Your email address has not been verified",
-                                });
-                            // if Email is verify... check if user is active...
-                            if (!user.active)
-                                return res.status(403).json({
-                                    error: "This user has been removed and cannot be used",
-                                });
-                            // if is active... login!
-                            res.cookie("auth", user.token).send(user.token);
-                        });
+                // if Email is verify... check if user is active...
+                if (!user.active)
+                    return res.status(403).json({
+                        error: "This user has been removed and cannot be used",
                     });
-                }
-                else if (loginUser && req.body.type === "register") {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "Email address already exists. It is not possible to register again with this email address",
-                        })];
-                }
-                _a.label = 6;
-            case 6: return [2 /*return*/];
-        }
-    });
-}); });
+                // if is active... login!
+                res.cookie("auth", user.token).send(user.token);
+            });
+        });
+    }
+    else if (loginUser && req.body.type === "register") {
+        return res.status(400).json({
+            error: "Email address already exists. It is not possible to register again with this email address",
+        });
+    }
+}));
 // Verify Email
-router.get("/verify/:id/:token", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var user, error_1;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 3, , 4]);
-                return [4 /*yield*/, user_1.default.findOne({ _id: req.params.id })];
-            case 1:
-                user = _a.sent();
-                if (!user)
-                    return [2 /*return*/, res.status(400).send("Invalid link")];
-                if (!user.token)
-                    return [2 /*return*/, res.status(400).send("Invalid link")];
-                return [4 /*yield*/, user_1.default.findByIdAndUpdate(user._id, {
-                        verifiedEmail: true,
-                        token: null,
-                    })];
-            case 2:
-                _a.sent();
-                res.send("<h2>Email verified sucessfully!</h2><p><br><br>Hello ".concat(user.firstName, ", your email address is now verified, you can access your account in the app!<br><br>best regards,<br>AskYourNation App Team.</p>"));
-                return [3 /*break*/, 4];
-            case 3:
-                error_1 = _a.sent();
-                res.status(400).send("An error occured. error: ".concat(error_1));
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
-        }
-    });
-}); });
+router.get("/verify/:id/:token", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const user = yield user_1.default.findOne({ _id: req.params.id });
+        if (!user)
+            return res.status(400).send("Invalid link");
+        if (!user.token)
+            return res.status(400).send("Invalid link");
+        yield user_1.default.findByIdAndUpdate(user._id, {
+            verifiedEmail: true,
+            token: null,
+        });
+        res.send(`<h2>Email verified sucessfully!</h2><p><br><br>Hello ${user.firstName}, your email address is now verified, you can access your account in the app!<br><br>best regards,<br>AskYourNation App Team.</p>`);
+    }
+    catch (error) {
+        res.status(400).send(`An error occured. error: ${error}`);
+    }
+}));
 //GET AND UPDATE (User personal profile)
 //GET (User profile)
-router.get("/", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var sort, list, index, profilePic;
+router.get("/", auth_1.auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    var _b, _c;
-    return __generator(this, function (_d) {
-        switch (_d.label) {
-            case 0:
-                sort = req.query.sortBy
-                    ? "points.".concat(req.query.sortBy)
-                    : "points.total";
-                return [4 /*yield*/, user_1.default.find({
-                        active: true,
-                        verifiedEmail: true,
-                        _id: { $ne: "64d893e184dc3ff40a2f0f62" },
-                    }).sort((_a = {},
-                        _a[sort] = "desc",
-                        _a))];
-            case 1:
-                list = _d.sent();
-                index = list.findIndex(function (x) { return x._id.toString() === req.user._id.toString(); });
-                profilePic = ((_b = req.user.profilePic) === null || _b === void 0 ? void 0 : _b.toString().includes("uploads/"))
-                    ? (0, uploadFiles_1.getFile)((_c = req.user.profilePic) === null || _c === void 0 ? void 0 : _c.toString())
-                    : undefined;
-                // const profilePic =
-                // 	result && !result.statusCode
-                // 		? Buffer.from((result as any).Body)?.toString("base64")
-                // 		: undefined;
-                res.json({
-                    id: req.user._id,
-                    email: req.user.email,
-                    firstName: req.user.firstName,
-                    lastName: req.user.lastName,
-                    profilePic: profilePic,
-                    nation: req.user.nation,
-                    active: req.user.active,
-                    points: req.user.points,
-                    postQuestions: req.user.postQuestions,
-                    answeredQuestions: req.user.answeredQuestions,
-                    rank: index + 1,
-                    sounds: req.user.sounds,
-                    token: req.user.token,
-                });
-                return [2 /*return*/];
-        }
+    const sort = req.query.sortBy
+        ? `points.${req.query.sortBy}`
+        : "points.total";
+    const list = yield user_1.default.find({
+        active: true,
+        verifiedEmail: true,
+        _id: { $ne: "64d893e184dc3ff40a2f0f62" },
+    }).sort({
+        [sort]: "desc",
     });
-}); });
-router.get("/top-ten", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var sort, limit, list, newList;
-    var _a;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                sort = req.query.sortBy
-                    ? "points.".concat(req.query.sortBy)
-                    : "points.total";
-                limit = req.query.limit || 10;
-                return [4 /*yield*/, user_1.default.find({
-                        active: true,
-                        verifiedEmail: true,
-                        _id: { $ne: "64d893e184dc3ff40a2f0f62" },
-                    })
-                        .limit(limit)
-                        .sort((_a = {},
-                        _a[sort] = "desc",
-                        _a))];
-            case 1:
-                list = _b.sent();
-                newList = list.map(function (user) {
-                    var _a, _b;
-                    var profilePic = ((_a = user.profilePic) === null || _a === void 0 ? void 0 : _a.toString().includes("uploads/"))
-                        ? (0, uploadFiles_1.getFile)((_b = user.profilePic) === null || _b === void 0 ? void 0 : _b.toString())
-                        : undefined;
-                    return {
-                        id: user._id,
-                        firstName: user.firstName,
-                        lastName: user.lastName,
-                        profilePic: profilePic,
-                        nation: user.nation,
-                        points: user.points,
-                    };
-                });
-                if (newList) {
-                    res.json({
-                        list: newList,
-                    });
-                }
-                return [2 /*return*/];
-        }
+    const index = list.findIndex((x) => x._id.toString() === req.user._id.toString());
+    res.json({
+        id: req.user._id,
+        email: req.user.email,
+        firstName: req.user.firstName,
+        lastName: req.user.lastName,
+        profilePic: ((_a = req.user.profilePic) === null || _a === void 0 ? void 0 : _a.toString()) === "{}"
+            ? undefined
+            : req.user.profilePic,
+        nation: req.user.nation,
+        active: req.user.active,
+        points: req.user.points,
+        postQuestions: req.user.postQuestions,
+        answeredQuestions: req.user.answeredQuestions,
+        rank: index + 1,
+        sounds: req.user.sounds,
+        token: req.user.token,
     });
-}); });
+}));
+router.get("/top-ten", auth_1.auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const sort = req.query.sortBy
+        ? `points.${req.query.sortBy}`
+        : "points.total";
+    const limit = req.query.limit || 10;
+    const list = yield user_1.default.find({
+        active: true,
+        verifiedEmail: true,
+        _id: { $ne: "64d893e184dc3ff40a2f0f62" },
+    })
+        .limit(limit)
+        .sort({
+        [sort]: "desc",
+    });
+    res.json({
+        list: list.map((user) => {
+            var _a;
+            return {
+                id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                profilePic: ((_a = user.profilePic) === null || _a === void 0 ? void 0 : _a.toString()) === "{}"
+                    ? undefined
+                    : user.profilePic,
+                nation: user.nation,
+                points: user.points,
+            };
+        }),
+    });
+}));
 // PATCH
 // User update profile
-router.patch("/update", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var profile, exsistName, user;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                profile = {
-                    firstName: req.body.firstName,
-                    lastName: req.body.lastName,
-                    nation: req.body.nation,
-                };
-                return [4 /*yield*/, user_1.default.find({
-                        firstName: req.body.firstName,
-                        lastName: req.body.lastName,
-                    })];
-            case 1:
-                exsistName = _a.sent();
-                if (exsistName.length > 0) {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "This name is already taken, please choose another name",
-                        })];
-                }
-                return [4 /*yield*/, user_1.default.findByIdAndUpdate(req.body.id, profile, {
-                        returnDocument: "after",
-                    })];
-            case 2:
-                user = _a.sent();
-                if (!user) {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "Failed to Update Your Profile. Try again later.",
-                        })];
-                }
-                res.json({
-                    success: true,
-                    msg: "Your profile has been successfully updated!",
-                    profile: user,
-                });
-                return [2 /*return*/];
-        }
+router.patch("/update", auth_1.auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const profile = {
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        nation: req.body.nation,
+    };
+    const exsistName = yield user_1.default.find({
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
     });
-}); });
+    if (exsistName.length > 0) {
+        return res.status(400).json({
+            error: "This name is already taken, please choose another name",
+        });
+    }
+    const user = yield user_1.default.findByIdAndUpdate(req.body.id, profile, {
+        returnDocument: "after",
+    });
+    if (!user) {
+        return res.status(400).json({
+            error: "Failed to Update Your Profile. Try again later.",
+        });
+    }
+    res.json({
+        success: true,
+        msg: "Your profile has been successfully updated!",
+        profile: user,
+    });
+}));
 // User update profile v2
-router.patch("/update/v2", [auth_1.auth, upload.array("file"), uploadFiles_1.upload], function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var profile, exsistName, user;
-    var _a;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                profile = {};
-                if (req.body.firstName)
-                    profile.firstName = req.body.firstName;
-                if (req.body.lastName)
-                    profile.lastName = req.body.lastName;
-                if (req.body.nationName)
-                    profile.nation = {
-                        name: req.body.nationName,
-                        flag: req.body.nationFlag,
-                    };
-                if (((_a = req.images) === null || _a === void 0 ? void 0 : _a[0]) || req.body.deletProfilePic === "yes") {
-                    profile.profilePic =
-                        req.body.deletProfilePic === "yes" ? "" : req.images[0];
-                }
-                return [4 /*yield*/, user_1.default.find({
-                        firstName: req.body.firstName,
-                        lastName: req.body.lastName,
-                        _id: { $ne: req.body.id },
-                    })];
-            case 1:
-                exsistName = _b.sent();
-                if (exsistName.length > 0) {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "This name is already taken, please choose another name",
-                        })];
-                }
-                return [4 /*yield*/, user_1.default.findByIdAndUpdate(req.body.id, profile, {
-                        returnDocument: "after",
-                    })];
-            case 2:
-                user = _b.sent();
-                if (!user) {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "Failed to Update Your Profile. Try again later.",
-                        })];
+router.patch("/update/v2", [auth_1.auth, upload.array("file"), uploadFiles_1.upload], (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const profile = {};
+    if (req.body.firstName)
+        profile.firstName = req.body.firstName;
+    if (req.body.lastName)
+        profile.lastName = req.body.lastName;
+    profile.nation = {
+        name: req.body.nationName,
+        flag: req.body.nationFlag,
+        language: req.bod.nationLanguage || "eng",
+    };
+    if (req.images || req.body.deletProfilePic === "yes") {
+        profile.profilePic =
+            req.body.deletProfilePic === "yes" ? "" : req.images;
+    }
+    const exsistName = yield user_1.default.find({
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        _id: { $ne: req.body.id },
+    });
+    if (exsistName.length > 0) {
+        return res.status(400).json({
+            error: "This name is already taken, please choose another name",
+        });
+    }
+    const user = yield user_1.default.findByIdAndUpdate(req.body.id, profile, {
+        returnDocument: "after",
+    });
+    if (!user) {
+        return res.status(400).json({
+            error: "Failed to Update Your Profile. Try again later.",
+        });
+    }
+    res.json({
+        success: true,
+        msg: "Your profile has been successfully updated!",
+        // profile: user,
+    });
+}));
+// CHANGE PASSWORD
+router.patch("/change-password", auth_1.auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const loginUser = yield user_1.default.findById(req.body.id);
+    if (!loginUser) {
+        return res.status(400).json({
+            error: "The user does not exist",
+        });
+    }
+    else {
+        // else compare passwords...
+        loginUser.comparePassword(req.body.oldPassword, (err, isMatch) => __awaiter(void 0, void 0, void 0, function* () {
+            if (err)
+                throw err;
+            // if NOT send an Error
+            if (!isMatch)
+                return res.status(400).json({
+                    error: "Password cannot be changed, because you did not enter the correct password",
+                });
+            // if passwords is match.... change it!
+            loginUser.password = req.body.newPassword;
+            try {
+                const doc = yield loginUser.save();
+                if (!doc) {
+                    return res.status(400).json({
+                        error: "Failed to Update Your Profile. Try again later.",
+                    });
                 }
                 res.json({
                     success: true,
-                    msg: "Your profile has been successfully updated!",
-                    // profile: user,
+                    msg: "Your password has been successfully changed!",
                 });
-                return [2 /*return*/];
-        }
-    });
-}); });
-// CHANGE PASSWORD
-router.patch("/change-password", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var loginUser;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, user_1.default.findById(req.body.id)];
-            case 1:
-                loginUser = _a.sent();
-                if (!loginUser) {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "The user does not exist",
-                        })];
-                }
-                else {
-                    // else compare passwords...
-                    loginUser.comparePassword(req.body.oldPassword, function (err, isMatch) { return __awaiter(void 0, void 0, void 0, function () {
-                        var doc, err_1;
-                        return __generator(this, function (_a) {
-                            switch (_a.label) {
-                                case 0:
-                                    if (err)
-                                        throw err;
-                                    // if NOT send an Error
-                                    if (!isMatch)
-                                        return [2 /*return*/, res.status(400).json({
-                                                error: "Password cannot be changed, because you did not enter the correct password",
-                                            })];
-                                    // if passwords is match.... change it!
-                                    loginUser.password = req.body.newPassword;
-                                    _a.label = 1;
-                                case 1:
-                                    _a.trys.push([1, 3, , 4]);
-                                    return [4 /*yield*/, loginUser.save()];
-                                case 2:
-                                    doc = _a.sent();
-                                    if (!doc) {
-                                        return [2 /*return*/, res.status(400).json({
-                                                error: "Failed to Update Your Profile. Try again later.",
-                                            })];
-                                    }
-                                    res.json({
-                                        success: true,
-                                        msg: "Your password has been successfully changed!",
-                                    });
-                                    return [3 /*break*/, 4];
-                                case 3:
-                                    err_1 = _a.sent();
-                                    return [2 /*return*/, res.status(400).json({
-                                            error: "Failed to Update Your Profile. ".concat(err_1),
-                                        })];
-                                case 4: return [2 /*return*/];
-                            }
-                        });
-                    }); });
-                }
-                return [2 /*return*/];
-        }
-    });
-}); });
+            }
+            catch (err) {
+                return res.status(400).json({
+                    error: `Failed to Update Your Profile. ${err}`,
+                });
+            }
+        }));
+    }
+}));
 // RESET PASSWORD
 // step 1: send verification code to email
-router.patch("/reset-password", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var loginUser, pinCode, message, result, err_2;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, user_1.default.findOne({ email: req.body.email })];
-            case 1:
-                loginUser = _a.sent();
-                if (!loginUser)
-                    return [2 /*return*/, res.status(400).json({
-                            error: "Your email address is incorrect",
-                        })];
-                if (!loginUser.active || !loginUser.verifiedEmail)
-                    return [2 /*return*/, res.status(400).json({
-                            error: "Password cannot be reset for this user",
-                        })];
-                pinCode = (0, generateVerificationCode_1.default)();
-                loginUser.verificationCode = {
-                    code: pinCode,
-                    expired: new Date().getTime() + 5 * 60000,
-                };
-                _a.label = 2;
-            case 2:
-                _a.trys.push([2, 5, , 6]);
-                return [4 /*yield*/, loginUser.save()];
-            case 3:
-                _a.sent();
-                message = "<p><b>Hello <strong>".concat(loginUser.firstName, "</strong>,</b><br>Your AskYourNation verification code is: <b>").concat(pinCode, "</b><br>Please enter this code in the app to reset your password.<br>This code is valid for 5 minutes.<br><br>best regards,<br>AskYourNation App Team.</p>");
-                return [4 /*yield*/, (0, sendEmail_1.default)(loginUser.email, "AskYourNation app reset password", message)];
-            case 4:
-                result = _a.sent();
-                if (result) {
-                    res.clearCookie("auth").json({
-                        register: true,
-                        message: "We have sent a verification code to your email address. This code is valid for 5 minutes.",
-                    });
-                }
-                else {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "Failed to send verification code to your email address",
-                        })];
-                }
-                return [3 /*break*/, 6];
-            case 5:
-                err_2 = _a.sent();
-                return [2 /*return*/, res.status(400).json({
-                        error: err_2,
-                    })];
-            case 6: return [2 /*return*/];
+router.patch("/reset-password", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // check if email is in the system and valid (User)...
+    const loginUser = yield user_1.default.findOne({ email: req.body.email });
+    if (!loginUser)
+        return res.status(400).json({
+            error: "Your email address is incorrect",
+        });
+    if (!loginUser.active || !loginUser.verifiedEmail)
+        return res.status(400).json({
+            error: "Password cannot be reset for this user",
+        });
+    // generate verification code. sent it to the user email and store it in the DB.
+    const pinCode = (0, generateVerificationCode_1.default)();
+    loginUser.verificationCode = {
+        code: pinCode,
+        expired: new Date().getTime() + 5 * 60000,
+    };
+    try {
+        yield loginUser.save();
+        const message = `<p><b>Hello <strong>${loginUser.firstName}</strong>,</b><br>Your AskYourNation verification code is: <b>${pinCode}</b><br>Please enter this code in the app to reset your password.<br>This code is valid for 5 minutes.<br><br>best regards,<br>AskYourNation App Team.</p>`;
+        const result = yield (0, sendEmail_1.default)(loginUser.email, "AskYourNation app reset password", message);
+        if (result) {
+            res.clearCookie("auth").json({
+                register: true,
+                message: "We have sent a verification code to your email address. This code is valid for 5 minutes.",
+            });
         }
-    });
-}); });
+        else {
+            return res.status(400).json({
+                error: "Failed to send verification code to your email address",
+            });
+        }
+    }
+    catch (err) {
+        return res.status(400).json({
+            error: err,
+        });
+    }
+}));
 // step 2: enter verification code by the user.
-router.patch("/verification-code", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var loginUser;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, user_1.default.findOne({ email: req.body.email })];
-            case 1:
-                loginUser = _a.sent();
-                if (!loginUser)
-                    return [2 /*return*/, res.status(400).json({
-                            error: "Your email address is incorrect",
-                        })];
-                if (loginUser.verificationCode.expired < new Date().getTime() ||
-                    !loginUser.verificationCode.code)
-                    return [2 /*return*/, res.status(400).json({
-                            error: "This verification code has expired",
-                        })];
-                loginUser.compareVerification(req.body.verificationCode, function (err, isMatch) { return __awaiter(void 0, void 0, void 0, function () {
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0:
-                                if (err)
-                                    throw err;
-                                // if NOT send an Error
-                                if (!isMatch)
-                                    return [2 /*return*/, res.status(400).json({
-                                            error: "The verification code is incorrect",
-                                        })];
-                                // verification code is match!
-                                // delete verification code from DB
-                                return [4 /*yield*/, user_1.default.findByIdAndUpdate(loginUser._id, {
-                                        verificationCode: {
-                                            code: null,
-                                        },
-                                    })];
-                            case 1:
-                                // verification code is match!
-                                // delete verification code from DB
-                                _a.sent();
-                                loginUser.generateToken(function (err, user) {
-                                    if (err)
-                                        return res.status(400).send(err);
-                                    // check if Email is verify...
-                                    if (!user.verifiedEmail)
-                                        return res.status(401).json({
-                                            error: "Your email address has not been verified",
-                                        });
-                                    // if Email is verify... check if user is active...
-                                    if (!user.active)
-                                        return res.status(403).json({
-                                            error: "This user has been removed and cannot be used",
-                                        });
-                                    // if is active... login!
-                                    res.cookie("auth", user.token).json({
-                                        verification: true,
-                                        id: user._id,
-                                        message: "Verification passed successfully. You must now reset your password.",
-                                    });
-                                });
-                                return [2 /*return*/];
-                        }
-                    });
-                }); });
-                return [2 /*return*/];
-        }
-    });
-}); });
+router.patch("/verification-code", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const loginUser = yield user_1.default.findOne({ email: req.body.email });
+    if (!loginUser)
+        return res.status(400).json({
+            error: "Your email address is incorrect",
+        });
+    if (loginUser.verificationCode.expired < new Date().getTime() ||
+        !loginUser.verificationCode.code)
+        return res.status(400).json({
+            error: "This verification code has expired",
+        });
+    loginUser.compareVerification(req.body.verificationCode, (err, isMatch) => __awaiter(void 0, void 0, void 0, function* () {
+        if (err)
+            throw err;
+        // if NOT send an Error
+        if (!isMatch)
+            return res.status(400).json({
+                error: "The verification code is incorrect",
+            });
+        // verification code is match!
+        // delete verification code from DB
+        yield user_1.default.findByIdAndUpdate(loginUser._id, {
+            verificationCode: {
+                code: null,
+            },
+        });
+        loginUser.generateToken((err, user) => {
+            if (err)
+                return res.status(400).send(err);
+            // check if Email is verify...
+            if (!user.verifiedEmail)
+                return res.status(401).json({
+                    error: "Your email address has not been verified",
+                });
+            // if Email is verify... check if user is active...
+            if (!user.active)
+                return res.status(403).json({
+                    error: "This user has been removed and cannot be used",
+                });
+            // if is active... login!
+            res.cookie("auth", user.token).json({
+                verification: true,
+                id: user._id,
+                message: "Verification passed successfully. You must now reset your password.",
+            });
+        });
+    }));
+}));
 // step 3: reset password by auth user and time expired.
-router.patch("/change-password-after-reset", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var loginUser, doc, err_3;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, user_1.default.findById(req.body.id)];
-            case 1:
-                loginUser = _a.sent();
-                if (!loginUser)
-                    return [2 /*return*/, res.status(400).json({
-                            error: "The user does not exist",
-                        })];
-                if (loginUser.verificationCode.expired < new Date().getTime())
-                    return [2 /*return*/, res.status(400).json({
-                            error: "Verification code has expired, password change failed",
-                        })];
-                loginUser.password = req.body.newPassword;
-                _a.label = 2;
-            case 2:
-                _a.trys.push([2, 4, , 5]);
-                return [4 /*yield*/, loginUser.save()];
-            case 3:
-                doc = _a.sent();
-                if (!doc) {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "Failed to Update Your Profile. Try again later.",
-                        })];
-                }
-                res.json({
-                    success: true,
-                    message: "Your password has been successfully changed!",
-                });
-                return [3 /*break*/, 5];
-            case 4:
-                err_3 = _a.sent();
-                return [2 /*return*/, res.status(400).json({
-                        error: "Failed to Update Your Profile. ".concat(err_3),
-                    })];
-            case 5: return [2 /*return*/];
+router.patch("/change-password-after-reset", auth_1.auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const loginUser = yield user_1.default.findById(req.body.id);
+    if (!loginUser)
+        return res.status(400).json({
+            error: "The user does not exist",
+        });
+    if (loginUser.verificationCode.expired < new Date().getTime())
+        return res.status(400).json({
+            error: "Verification code has expired, password change failed",
+        });
+    loginUser.password = req.body.newPassword;
+    try {
+        const doc = yield loginUser.save();
+        if (!doc) {
+            return res.status(400).json({
+                error: "Failed to Update Your Profile. Try again later.",
+            });
         }
+        res.json({
+            success: true,
+            message: "Your password has been successfully changed!",
+        });
+    }
+    catch (err) {
+        return res.status(400).json({
+            error: `Failed to Update Your Profile. ${err}`,
+        });
+    }
+}));
+router.patch("/sounds", auth_1.auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield user_1.default.findByIdAndUpdate(req.query.id, {
+        sounds: req.query.sounds,
     });
-}); });
-router.patch("/sounds", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var user;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, user_1.default.findByIdAndUpdate(req.query.id, {
-                    sounds: req.query.sounds,
-                })];
-            case 1:
-                user = _a.sent();
-                if (!user) {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "Failed to update Your Profile. Try again later.",
-                        })];
-                }
-                res.json({
-                    success: true,
-                    message: "Your profile has been successfully updated!",
-                });
-                return [2 /*return*/];
-        }
+    if (!user) {
+        return res.status(400).json({
+            error: "Failed to update Your Profile. Try again later.",
+        });
+    }
+    res.json({
+        success: true,
+        message: "Your profile has been successfully updated!",
     });
-}); });
+}));
 // DELETE
 // Delete user profile
-router.delete("/", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var user;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, user_1.default.findByIdAndUpdate(req.query.id, {
-                    active: false,
-                    token: null,
-                })];
-            case 1:
-                user = _a.sent();
-                if (!user) {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "Failed to Delete Your Profile. Try again later.",
-                        })];
-                }
-                res.json({
-                    success: true,
-                    message: "Your profile has been successfully deleted!",
-                });
-                return [2 /*return*/];
-        }
+router.delete("/", auth_1.auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield user_1.default.findByIdAndUpdate(req.query.id, {
+        active: false,
+        token: null,
     });
-}); });
+    if (!user) {
+        return res.status(400).json({
+            error: "Failed to Delete Your Profile. Try again later.",
+        });
+    }
+    res.json({
+        success: true,
+        message: "Your profile has been successfully deleted!",
+    });
+}));
 exports.default = router;

@@ -8,378 +8,265 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var express_1 = __importDefault(require("express"));
-var router = express_1.default.Router();
-var question_1 = __importDefault(require("../models/question"));
-var user_1 = __importDefault(require("../models/user"));
-var auth_1 = require("../middleware/auth");
-var sendEmail_1 = __importDefault(require("../utils/sendEmail"));
+const express_1 = __importDefault(require("express"));
+const router = express_1.default.Router();
+const question_1 = __importDefault(require("../models/question"));
+const user_1 = __importDefault(require("../models/user"));
+const auth_1 = require("../middleware/auth");
+const sendEmail_1 = __importDefault(require("../utils/sendEmail"));
 // GET
 // get 20 systematic questions again and again... untill end
-router.get("/", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var limit, skip, list;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                limit = req.query.limit || 20;
-                skip = req.query.skip || 0;
-                return [4 /*yield*/, question_1.default.find({
-                        "createdBy.id": { $ne: req.user._id, $nin: req.user.blockUsers },
-                        _id: { $nin: req.user.answeredQuestions }, // filter questions that the user has already answered
-                    })
-                        .limit(limit)
-                        .skip(skip)
-                        .sort({
-                        "rating.rank": "desc",
-                        createdAt: "desc",
-                    })];
-            case 1:
-                list = _a.sent();
-                if (!list || list.length === 0) {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "There are no questions to display",
-                        })];
-                }
-                res.json({
-                    list: list,
-                });
-                return [2 /*return*/];
-        }
+router.get("/", auth_1.auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const limit = req.query.limit || 20;
+    const skip = req.query.skip || 0;
+    const list = yield question_1.default.find({
+        "createdBy.id": { $ne: req.user._id, $nin: req.user.blockUsers },
+        _id: { $nin: req.user.answeredQuestions }, // filter questions that the user has already answered
+    })
+        .limit(limit)
+        .skip(skip)
+        .sort({
+        "rating.rank": "desc",
+        createdAt: "desc",
     });
-}); });
+    if (!list || list.length === 0) {
+        return res.status(400).json({
+            error: `There are no questions to display`,
+        });
+    }
+    res.json({
+        list: list,
+    });
+}));
 // get my questions.
-router.get("/my-questions", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var list;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, question_1.default.find({
-                    "createdBy.id": req.user._id,
-                })
-                    .select("+answers.correctIndex")
-                    .sort({
-                    createdAt: "desc",
-                })];
-            case 1:
-                list = _a.sent();
-                if (!list || list.length === 0) {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "There are no questions to display",
-                        })];
-                }
-                res.json({
-                    list: list,
-                });
-                return [2 /*return*/];
-        }
+router.get("/my-questions", auth_1.auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const list = yield question_1.default.find({
+        "createdBy.id": req.user._id,
+    })
+        .select("+answers.correctIndex")
+        .sort({
+        createdAt: "desc",
     });
-}); });
+    if (!list || list.length === 0) {
+        return res.status(400).json({
+            error: `There are no questions to display`,
+        });
+    }
+    res.json({
+        list: list,
+    });
+}));
 // POST (add new question)
-router.post("/", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var question, doc, error_1;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                question = new question_1.default(req.body);
-                question.createdBy = {
-                    id: req.user._id,
-                    firstName: req.user.firstName,
-                    lastName: req.user.lastName,
-                };
-                _a.label = 1;
-            case 1:
-                _a.trys.push([1, 4, , 5]);
-                return [4 /*yield*/, question.save()];
-            case 2:
-                doc = _a.sent();
-                if (!doc) {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "Posting the question failed",
-                        })];
-                }
-                // update user DB
-                return [4 /*yield*/, user_1.default.findByIdAndUpdate(req.user._id, {
-                        $push: { postQuestions: doc._id },
-                        $inc: { "points.total": 1, "points.questions": 1 },
-                    })];
-            case 3:
-                // update user DB
-                _a.sent();
-                res.json({
-                    success: true,
-                    msg: "Your question has been successfully posted",
-                    question: doc,
-                });
-                return [3 /*break*/, 5];
-            case 4:
-                error_1 = _a.sent();
-                return [2 /*return*/, res.status(400).json({
-                        error: error_1,
-                    })];
-            case 5: return [2 /*return*/];
+router.post("/", auth_1.auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const question = new question_1.default(req.body);
+    question.createdBy = {
+        id: req.user._id,
+        firstName: req.user.firstName,
+        lastName: req.user.lastName,
+    };
+    try {
+        const doc = yield question.save();
+        if (!doc) {
+            return res.status(400).json({
+                error: "Posting the question failed",
+            });
         }
-    });
-}); });
+        // update user DB
+        yield user_1.default.findByIdAndUpdate(req.user._id, {
+            $push: { postQuestions: doc._id },
+            $inc: { "points.total": 1, "points.questions": 1 },
+        });
+        res.json({
+            success: true,
+            msg: "Your question has been successfully posted",
+            question: doc,
+        });
+    }
+    catch (error) {
+        return res.status(400).json({
+            error,
+        });
+    }
+}));
 // PATCH
 // update question
-router.patch("/update", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var question, error_2;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, question_1.default.findByIdAndUpdate(req.body.id, req.body, {
-                        returnDocument: "after",
-                    })];
-            case 1:
-                question = _a.sent();
-                if (!question) {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "Failed to Update Your question. Try again later.",
-                        })];
-                }
-                res.json({
-                    success: true,
-                    msg: "Your question has been successfully updated!",
-                    profile: question,
-                });
-                return [3 /*break*/, 3];
-            case 2:
-                error_2 = _a.sent();
-                return [2 /*return*/, res.status(400).json({
-                        error: error_2,
-                    })];
-            case 3: return [2 /*return*/];
+router.patch("/update", auth_1.auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const question = yield question_1.default.findByIdAndUpdate(req.body.id, req.body, {
+            returnDocument: "after",
+        });
+        if (!question) {
+            return res.status(400).json({
+                error: "Failed to Update Your question. Try again later.",
+            });
         }
-    });
-}); });
+        res.json({
+            success: true,
+            msg: "Your question has been successfully updated!",
+            profile: question,
+        });
+    }
+    catch (error) {
+        return res.status(400).json({
+            error,
+        });
+    }
+}));
 // update qution rating
-router.patch("/rating", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var question, rating, newQuestion, error_3;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 3, , 4]);
-                if (req.body.rating > 5 || req.body.rating < 1) {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "The rating must be between 1 and 5",
-                        })];
-                }
-                return [4 /*yield*/, question_1.default.findById(req.body.id)];
-            case 1:
-                question = _a.sent();
-                if (!question) {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "Failed to rating this question. Try again later.",
-                        })];
-                }
-                rating = question.rating.value
-                    ? question.rating.value +
-                        (Number(req.body.rating) - question.rating.value) /
-                            (question.rating.numberOfRatings + 1)
-                    : Number(req.body.rating);
-                return [4 /*yield*/, question_1.default.findByIdAndUpdate(req.body.id, {
-                        "rating.value": rating,
-                        "rating.rank": rating * (question.rating.numberOfRatings + 1),
-                        $inc: { "rating.numberOfRatings": 1 },
-                    }, {
-                        returnDocument: "after",
-                    })];
-            case 2:
-                newQuestion = _a.sent();
-                if (!newQuestion) {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "Failed to rating this question. Try again later.",
-                        })];
-                }
-                res.json({
-                    success: true,
-                    msg: "You have successfully rated this question!",
-                    rating: newQuestion.rating.value,
-                    numberOfRatings: newQuestion.rating.numberOfRatings,
-                    id: newQuestion._id,
-                });
-                return [3 /*break*/, 4];
-            case 3:
-                error_3 = _a.sent();
-                return [2 /*return*/, res.status(400).json({
-                        error: error_3,
-                    })];
-            case 4: return [2 /*return*/];
+router.patch("/rating", auth_1.auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        if (req.body.rating > 5 || req.body.rating < 1) {
+            return res.status(400).json({
+                error: "The rating must be between 1 and 5",
+            });
         }
-    });
-}); });
+        const question = yield question_1.default.findById(req.body.id);
+        if (!question) {
+            return res.status(400).json({
+                error: "Failed to rating this question. Try again later.",
+            });
+        }
+        const rating = question.rating.value
+            ? question.rating.value +
+                (Number(req.body.rating) - question.rating.value) /
+                    (question.rating.numberOfRatings + 1)
+            : Number(req.body.rating);
+        const newQuestion = yield question_1.default.findByIdAndUpdate(req.body.id, {
+            "rating.value": rating,
+            "rating.rank": rating * (question.rating.numberOfRatings + 1),
+            $inc: { "rating.numberOfRatings": 1 },
+        }, {
+            returnDocument: "after",
+        });
+        if (!newQuestion) {
+            return res.status(400).json({
+                error: "Failed to rating this question. Try again later.",
+            });
+        }
+        res.json({
+            success: true,
+            msg: "You have successfully rated this question!",
+            rating: newQuestion.rating.value,
+            numberOfRatings: newQuestion.rating.numberOfRatings,
+            id: newQuestion._id,
+        });
+    }
+    catch (error) {
+        return res.status(400).json({
+            error,
+        });
+    }
+}));
 // report question
-router.patch("/report", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var question, message, result, error_4;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 5, , 6]);
-                return [4 /*yield*/, question_1.default.findById(req.body.id).select("+answers.correctIndex")];
-            case 1:
-                question = _a.sent();
-                if (!question) {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "Failed to report this question. It has already been deleted.",
-                        })];
-                }
-                if (!req.body.blockUser) return [3 /*break*/, 3];
-                return [4 /*yield*/, user_1.default.findByIdAndUpdate(req.user._id, {
-                        $push: { blockUsers: question.createdBy.id },
-                    })];
-            case 2:
-                _a.sent();
-                _a.label = 3;
-            case 3:
-                message = "<p><b>User report a question:</b><br><br><b>Details of the reporter:</b><br>Id: ".concat(req.user._id, "<br>FirstName: ").concat(req.user.firstName, "<br>LastName: ").concat(req.user.lastName, "<br><br><b>Question details:</b><br>Id: ").concat(question._id, "<br>Question: ").concat(question.question, "<br>Answers: ").concat(question.answers.options, "<br>Correct Answer Index: ").concat(question.answers.correctIndex, "<br>Created By:<br> - Id: ").concat(question.createdBy.id, "<br> - firstName: ").concat(question.createdBy.firstName, "<br> - lastName: ").concat(question.createdBy.lastName, "<br><br><b>The details of the report:</b><br>Reason: ").concat(req.body.reason, "<br><br>Free Text: ").concat(req.body.text, "</p>");
-                return [4 /*yield*/, (0, sendEmail_1.default)(process.env.EMAIL_USER, "User report a question: ".concat(req.body.id, " - AskYourNation app"), message)];
-            case 4:
-                result = _a.sent();
-                if (result) {
-                    res.json({
-                        success: true,
-                        msg: req.body.blockUser
-                            ? "You have successfully reported this question and block this user!"
-                            : "You have successfully reported this question!",
-                    });
-                }
-                else {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "Failed to report this question.",
-                        })];
-                }
-                return [3 /*break*/, 6];
-            case 5:
-                error_4 = _a.sent();
-                return [2 /*return*/, res.status(400).json({
-                        error: error_4,
-                    })];
-            case 6: return [2 /*return*/];
+router.patch("/report", auth_1.auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const question = yield question_1.default.findById(req.body.id).select("+answers.correctIndex");
+        if (!question) {
+            return res.status(400).json({
+                error: "Failed to report this question. It has already been deleted.",
+            });
         }
-    });
-}); });
+        // block user - add userId to IDs I dont want to see their questions
+        if (req.body.blockUser) {
+            yield user_1.default.findByIdAndUpdate(req.user._id, {
+                $push: { blockUsers: question.createdBy.id },
+            });
+        }
+        // send email report
+        const message = `<p><b>User report a question:</b><br><br><b>Details of the reporter:</b><br>Id: ${req.user._id}<br>FirstName: ${req.user.firstName}<br>LastName: ${req.user.lastName}<br><br><b>Question details:</b><br>Id: ${question._id}<br>Question: ${question.question}<br>Answers: ${question.answers.options}<br>Correct Answer Index: ${question.answers.correctIndex}<br>Created By:<br> - Id: ${question.createdBy.id}<br> - firstName: ${question.createdBy.firstName}<br> - lastName: ${question.createdBy.lastName}<br><br><b>The details of the report:</b><br>Reason: ${req.body.reason}<br><br>Free Text: ${req.body.text}</p>`;
+        const result = yield (0, sendEmail_1.default)(process.env.EMAIL_USER, `User report a question: ${req.body.id} - AskYourNation app`, message);
+        if (result) {
+            res.json({
+                success: true,
+                msg: req.body.blockUser
+                    ? "You have successfully reported this question and block this user!"
+                    : "You have successfully reported this question!",
+            });
+        }
+        else {
+            return res.status(400).json({
+                error: "Failed to report this question.",
+            });
+        }
+    }
+    catch (error) {
+        return res.status(400).json({
+            error,
+        });
+    }
+}));
 // answer question
-router.patch("/answer", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var question, userAnsweredCorrect, error_5;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 4, , 5]);
-                return [4 /*yield*/, question_1.default.findById(req.body.id).select("+answers.correctIndex")];
-            case 1:
-                question = _a.sent();
-                if (!question) {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "Failed to answer on this question. Try again later.",
-                        })];
-                }
-                if (question.createdBy.id.toString() === req.user._id.toString()) {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "You cannot answer the questions you wrote.",
-                        })];
-                }
-                if (req.user.answeredQuestions.includes(req.body.id)) {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "You have already answered this question.",
-                        })];
-                }
-                userAnsweredCorrect = question.answers.correctIndex === req.body.answerIndex
-                    ? true
-                    : false;
-                return [4 /*yield*/, question_1.default.findByIdAndUpdate(req.body.id, {
-                        $inc: {
-                            "amountOfanswers.all": 1,
-                            "amountOfanswers.correct": userAnsweredCorrect ? 1 : 0,
-                        },
-                    })];
-            case 2:
-                _a.sent();
-                // update user DB
-                return [4 /*yield*/, user_1.default.findByIdAndUpdate(req.user._id, {
-                        $push: { answeredQuestions: req.body.id },
-                        $inc: {
-                            "points.total": userAnsweredCorrect ? 1 : 0,
-                            "points.answers": userAnsweredCorrect ? 1 : 0,
-                        },
-                    })];
-            case 3:
-                // update user DB
-                _a.sent();
-                res.json({
-                    correctIndex: question.answers.correctIndex,
-                    userIndex: req.body.answerIndex,
-                    userAnsweredCorrect: userAnsweredCorrect,
-                });
-                return [3 /*break*/, 5];
-            case 4:
-                error_5 = _a.sent();
-                return [2 /*return*/, res.status(400).json({
-                        error: error_5,
-                    })];
-            case 5: return [2 /*return*/];
+router.patch("/answer", auth_1.auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const question = yield question_1.default.findById(req.body.id).select("+answers.correctIndex");
+        if (!question) {
+            return res.status(400).json({
+                error: "Failed to answer on this question. Try again later.",
+            });
         }
-    });
-}); });
+        if (question.createdBy.id.toString() === req.user._id.toString()) {
+            return res.status(400).json({
+                error: "You cannot answer the questions you wrote.",
+            });
+        }
+        if (req.user.answeredQuestions.includes(req.body.id)) {
+            return res.status(400).json({
+                error: "You have already answered this question.",
+            });
+        }
+        const userAnsweredCorrect = question.answers.correctIndex === req.body.answerIndex
+            ? true
+            : false;
+        yield question_1.default.findByIdAndUpdate(req.body.id, {
+            $inc: {
+                "amountOfanswers.all": 1,
+                "amountOfanswers.correct": userAnsweredCorrect ? 1 : 0,
+            },
+        });
+        // update user DB
+        yield user_1.default.findByIdAndUpdate(req.user._id, {
+            $push: { answeredQuestions: req.body.id },
+            $inc: {
+                "points.total": userAnsweredCorrect ? 1 : 0,
+                "points.answers": userAnsweredCorrect ? 1 : 0,
+            },
+        });
+        res.json({
+            correctIndex: question.answers.correctIndex,
+            userIndex: req.body.answerIndex,
+            userAnsweredCorrect: userAnsweredCorrect,
+        });
+    }
+    catch (error) {
+        return res.status(400).json({
+            error,
+        });
+    }
+}));
 // Delete question
-router.delete("/", auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var question;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, question_1.default.findOneAndDelete({
-                    _id: req.query.id,
-                    "createdBy.id": req.user._id,
-                })];
-            case 1:
-                question = _a.sent();
-                if (!question) {
-                    return [2 /*return*/, res.status(400).json({
-                            error: "Failed to Delete Your question. Try again later.",
-                        })];
-                }
-                return [4 /*yield*/, user_1.default.findByIdAndUpdate(req.user._id, {
-                        $pull: { postQuestions: req.query.id },
-                        $inc: { "points.total": -1, "points.questions": -1 },
-                    })];
-            case 2:
-                _a.sent();
-                res.json({
-                    success: true,
-                    id: req.query.id,
-                    msg: "Your question has been successfully deleted!",
-                });
-                return [2 /*return*/];
-        }
+router.delete("/", auth_1.auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // update user DB
+    const question = yield question_1.default.findOneAndDelete({
+        _id: req.query.id,
+        "createdBy.id": req.user._id,
     });
-}); });
+    if (!question) {
+        return res.status(400).json({
+            error: "Failed to Delete Your question. Try again later.",
+        });
+    }
+    yield user_1.default.findByIdAndUpdate(req.user._id, {
+        $pull: { postQuestions: req.query.id },
+        $inc: { "points.total": -1, "points.questions": -1 },
+    });
+    res.json({
+        success: true,
+        id: req.query.id,
+        msg: "Your question has been successfully deleted!",
+    });
+}));
 exports.default = router;

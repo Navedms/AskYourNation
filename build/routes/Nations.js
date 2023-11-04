@@ -3,19 +3,23 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var express_1 = __importDefault(require("express"));
-var axios_1 = __importDefault(require("axios"));
-var router = express_1.default.Router();
+const express_1 = __importDefault(require("express"));
+const axios_1 = __importDefault(require("axios"));
+const router = express_1.default.Router();
 // GET
-router.get('/', function (req, res) {
+router.get("/", (req, res) => {
     axios_1.default
-        .get('https://restcountries.com/v3.1/all')
+        .get("https://restcountries.com/v3.1/all")
         .then(function (response) {
-        var data = response.data
-            .map(function (item) {
-            return { name: item.name.common, flag: item.flag };
+        const data = response.data
+            .map((item) => {
+            return {
+                name: item.name.common,
+                flag: item.flag,
+                languages: item.languages,
+            };
         })
-            .sort(function (a, b) {
+            .sort((a, b) => {
             if (a.name < b.name) {
                 return -1;
             }

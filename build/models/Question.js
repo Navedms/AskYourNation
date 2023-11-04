@@ -23,8 +23,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var mongoose_1 = __importStar(require("mongoose"));
-var QuestionSchema = new mongoose_1.Schema({
+const mongoose_1 = __importStar(require("mongoose"));
+const QuestionSchema = new mongoose_1.Schema({
     nation: {
         name: {
             type: String,
@@ -43,7 +43,7 @@ var QuestionSchema = new mongoose_1.Schema({
     answers: {
         options: {
             type: [String],
-            validate: function (v) { return Array.isArray(v) && v.length === 4; },
+            validate: (v) => Array.isArray(v) && v.length === 4,
         },
         correctIndex: {
             type: Number,

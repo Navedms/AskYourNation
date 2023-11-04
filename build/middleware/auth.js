@@ -4,16 +4,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.auth = void 0;
-var user_1 = __importDefault(require("../models/user"));
-var auth = function (req, res, next) {
+const user_1 = __importDefault(require("../models/user"));
+const auth = (req, res, next) => {
     var _a, _b;
-    var token = ((_a = req.headers) === null || _a === void 0 ? void 0 : _a.authorization) || ((_b = req.cookies) === null || _b === void 0 ? void 0 : _b.auth);
+    let token = ((_a = req.headers) === null || _a === void 0 ? void 0 : _a.authorization) || ((_b = req.cookies) === null || _b === void 0 ? void 0 : _b.auth);
     if (!token) {
         return res.status(401).json({
             error: "Access Denied",
         });
     }
-    user_1.default.findByToken(token, function (err, user) {
+    user_1.default.findByToken(token, (err, user) => {
         if (err)
             throw err;
         if (!user)
