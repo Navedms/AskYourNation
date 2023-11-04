@@ -8,7 +8,6 @@ import sendEmail from "../utils/sendEmail";
 import generateVerificationCode from "../utils/generateVerificationCode";
 
 import { upload as uploadFiles } from "../middleware/uploadFiles";
-import { log } from "console";
 
 const storage = multer.memoryStorage();
 
