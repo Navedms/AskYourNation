@@ -9,6 +9,11 @@ export interface Nation {
 	flag: string;
 	language?: string;
 }
+
+export interface Translate {
+	original: string;
+	translation: string;
+}
 export interface VerificationCode {
 	code: string;
 	expired: number;
@@ -29,6 +34,7 @@ export interface IUser {
 	lastName?: string;
 	profilePic?: string;
 	nation: Nation;
+	translate: Translate;
 	active?: boolean;
 	sounds?: boolean;
 	points?: Points;
@@ -80,7 +86,6 @@ const UserSchema: Schema = new Schema(
 		},
 		password: {
 			type: String,
-			required: true,
 			minLength: 6,
 		},
 		nation: {
@@ -92,6 +97,16 @@ const UserSchema: Schema = new Schema(
 			},
 			language: {
 				type: String,
+			},
+		},
+		translate: {
+			original: {
+				type: String,
+				default: "Original text",
+			},
+			translation: {
+				type: String,
+				default: "Translation",
 			},
 		},
 		active: {

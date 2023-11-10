@@ -60,7 +60,6 @@ const UserSchema = new mongoose_1.Schema({
     },
     password: {
         type: String,
-        required: true,
         minLength: 6,
     },
     nation: {
@@ -72,6 +71,16 @@ const UserSchema = new mongoose_1.Schema({
         },
         language: {
             type: String,
+        },
+    },
+    translate: {
+        original: {
+            type: String,
+            default: "Original text",
+        },
+        translation: {
+            type: String,
+            default: "Translation",
         },
     },
     active: {

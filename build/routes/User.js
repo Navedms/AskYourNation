@@ -20,6 +20,7 @@ const auth_1 = require("../middleware/auth");
 const sendEmail_1 = __importDefault(require("../utils/sendEmail"));
 const generateVerificationCode_1 = __importDefault(require("../utils/generateVerificationCode"));
 const uploadFiles_1 = require("../middleware/uploadFiles");
+const translateText_1 = require("../utils/translateText");
 const storage = multer_1.default.memoryStorage();
 const fileFilter = (req, file, cb) => {
     if (file.mimetype.split("/")[0] === "image") {
@@ -35,14 +36,15 @@ const upload = (0, multer_1.default)({
     limits: { fileSize: 1000000000, files: 1 },
 });
 // POST (Register and Login User)
-router.post("/test", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(req.body.test);
-    res.json({
-        test: true,
-        msg: "Your test",
-    });
-}));
+// router.post("/test", async (req: Request, res: Response) => {
+// 	console.log(req.body);
+// 	res.json({
+// 		test: true,
+// 		msg: "Your test",
+// 	});
+// });
 router.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     if (req.body.firstName) {
         req.body.type = "register";
     }
@@ -53,7 +55,7 @@ router.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const loginUser = yield user_1.default.findOne({ email: req.body.email });
     if (!loginUser && req.body.type === "login") {
         return res.status(400).json({
-            error: "Email address does not exist",
+            error: "Email address does not exist. You must Sign Up first",
         });
     }
     if (!loginUser && req.body.type === "register") {
@@ -66,41 +68,66 @@ router.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 error: "This name is already taken, please choose another name",
             });
         }
+        // add translated text in native languge
+        if (((_a = req.body.nation) === null || _a === void 0 ? void 0 : _a.language) && ((_b = req.body.nation) === null || _b === void 0 ? void 0 : _b.language) !== "en") {
+            const response = yield (0, translateText_1.translateText)("original text|translation", req.body.nation.language);
+            if (typeof response === "string") {
+                req.body.translate = {
+                    original: response.split("|")[0],
+                    translation: response.split("|")[1],
+                };
+            }
+        }
         // register new user
         let user = new user_1.default(req.body);
         const doc = yield user.save();
+        if (req.body.profilePic && doc) {
+            yield user_1.default.findByIdAndUpdate(doc._id, { profilePic: req.body.profilePic }, {
+                returnDocument: "after",
+            });
+        }
         // register new user and... send email to verify your email!
         doc.generateToken((err, doc) => {
             if (err)
                 return res.status(400).send(err);
             user.token = doc.token;
         });
-        const message = `<p><b>Hello <strong>${user.firstName}</strong>, and welcome to AskYourNation!</b><br><br> Please click the link below to verify your email address:<br> ${process.env.SERVER_URL}/api/users/verify/${user._id}/${user.token}<br><br>Once your email address is verified, you can access your account in the app!<br><br>best regards,<br>AskYourNation App Team.</p>`;
-        const result = yield (0, sendEmail_1.default)(user.email, "Verify Email in AskYourNation app", message);
-        if (result) {
-            res.json({
-                register: true,
-                message: "We have sent a message to your email address. Confirm your email address to finish registration.",
-            });
+        if (req.body.verifiedEmail) {
+            // Email is verify... check if user is active...
+            if (!user.active)
+                return res.status(403).json({
+                    error: "This user has been removed and cannot be used",
+                });
+            // if is active... login!
+            res.cookie("auth", user.token).send(user.token);
         }
         else {
-            return res.status(400).json({
-                error: "Failed to send registration link to your email address",
-            });
+            const message = `<p><b>Hello <strong>${user.firstName}</strong>, and welcome to AskYourNation!</b><br><br> Please click the link below to verify your email address:<br> ${process.env.SERVER_URL}/api/users/verify/${user._id}/${user.token}<br><br>Once your email address is verified, you can access your account in the app!<br><br>best regards,<br>AskYourNation App Team.</p>`;
+            const result = yield (0, sendEmail_1.default)(user.email, "Verify Email in AskYourNation app", message);
+            if (result) {
+                res.json({
+                    register: true,
+                    message: "We have sent a message to your email address. Confirm your email address to finish registration.",
+                });
+            }
+            else {
+                return res.status(400).json({
+                    error: "Failed to send registration link to your email address",
+                });
+            }
         }
     }
     else if (loginUser && req.body.type === "login") {
-        // else compare passwords and make a login
-        loginUser.comparePassword(req.body.password, (err, isMatch) => {
-            if (err)
-                throw err;
-            // if NOT send an Error
-            if (!isMatch)
+        if (req.body.verifiedEmail) {
+            const user = yield user_1.default.findByIdAndUpdate(loginUser.id, { verifiedEmail: req.body.verifiedEmail }, {
+                returnDocument: "after",
+            });
+            if (!user) {
                 return res.status(400).json({
-                    error: "The password is incorrect",
+                    error: "Failed to Register Your Profile. Try again later.",
                 });
-            // passwords is match!
-            loginUser.generateToken((err, user) => {
+            }
+            user.generateToken((err, user) => {
                 if (err)
                     return res.status(400).send(err);
                 // check if Email is verify...
@@ -116,12 +143,69 @@ router.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 // if is active... login!
                 res.cookie("auth", user.token).send(user.token);
             });
-        });
+        }
+        else {
+            // else compare passwords and make a login
+            loginUser.comparePassword(req.body.password, (err, isMatch) => {
+                if (err)
+                    throw err;
+                // if NOT send an Error
+                if (!isMatch)
+                    return res.status(400).json({
+                        error: "The password is incorrect",
+                    });
+                // passwords is match!
+                loginUser.generateToken((err, user) => {
+                    if (err)
+                        return res.status(400).send(err);
+                    // check if Email is verify...
+                    if (!user.verifiedEmail)
+                        return res.status(401).json({
+                            error: "Your email address has not been verified",
+                        });
+                    // if Email is verify... check if user is active...
+                    if (!user.active)
+                        return res.status(403).json({
+                            error: "This user has been removed and cannot be used",
+                        });
+                    // if is active... login!
+                    res.cookie("auth", user.token).send(user.token);
+                });
+            });
+        }
     }
     else if (loginUser && req.body.type === "register") {
-        return res.status(400).json({
-            error: "Email address already exists. It is not possible to register again with this email address",
-        });
+        if (req.body.verifiedEmail) {
+            const user = yield user_1.default.findByIdAndUpdate(loginUser.id, { verifiedEmail: req.body.verifiedEmail }, {
+                returnDocument: "after",
+            });
+            if (!user) {
+                return res.status(400).json({
+                    error: "Failed to Register Your Profile. Try again later.",
+                });
+            }
+            user.generateToken((err, user) => {
+                if (err)
+                    return res.status(400).send(err);
+                // check if Email is verify...
+                if (!user.verifiedEmail)
+                    return res.status(401).json({
+                        error: "Your email address has not been verified",
+                    });
+                // if Email is verify... check if user is active...
+                if (!user.active)
+                    return res.status(403).json({
+                        error: "This user has been removed and cannot be used",
+                    });
+                // if is active... login!
+                res.cookie("auth", user.token).send(user.token);
+            });
+        }
+        else {
+            return res.status(400).json({
+                error: "Email address already exists. It is not possible to register again with this email address",
+            });
+        }
     }
 }));
 // Verify Email
@@ -145,7 +229,7 @@ router.get("/verify/:id/:token", (req, res) => __awaiter(void 0, void 0, void 0,
 //GET AND UPDATE (User personal profile)
 //GET (User profile)
 router.get("/", auth_1.auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _c;
     const sort = req.query.sortBy
         ? `points.${req.query.sortBy}`
         : "points.total";
@@ -155,6 +239,7 @@ router.get("/", auth_1.auth, (req, res) => __awaiter(void 0, void 0, void 0, fun
         _id: { $ne: "64d893e184dc3ff40a2f0f62" },
     }).sort({
         [sort]: "desc",
+        firstName: "asc",
     });
     const index = list.findIndex((x) => x._id.toString() === req.user._id.toString());
     res.json({
@@ -162,10 +247,11 @@ router.get("/", auth_1.auth, (req, res) => __awaiter(void 0, void 0, void 0, fun
         email: req.user.email,
         firstName: req.user.firstName,
         lastName: req.user.lastName,
-        profilePic: ((_a = req.user.profilePic) === null || _a === void 0 ? void 0 : _a.toString()) === "{}"
+        profilePic: ((_c = req.user.profilePic) === null || _c === void 0 ? void 0 : _c.toString()) === "{}"
             ? undefined
             : req.user.profilePic,
         nation: req.user.nation,
+        translate: req.user.translate,
         active: req.user.active,
         points: req.user.points,
         postQuestions: req.user.postQuestions,
@@ -188,6 +274,7 @@ router.get("/top-ten", auth_1.auth, (req, res) => __awaiter(void 0, void 0, void
         .limit(limit)
         .sort({
         [sort]: "desc",
+        firstName: "asc",
     });
     res.json({
         list: list.map((user) => {
@@ -246,11 +333,21 @@ router.patch("/update/v2", [auth_1.auth, upload.array("file"), uploadFiles_1.upl
     profile.nation = {
         name: req.body.nationName,
         flag: req.body.nationFlag,
-        language: req.bod.nationLanguage || "eng",
+        language: req.body.nationLanguage || "en",
     };
     if (req.images || req.body.deletProfilePic === "yes") {
         profile.profilePic =
             req.body.deletProfilePic === "yes" ? "" : req.images;
+    }
+    // update translated text in native languge
+    if (req.body.nationLanguage && req.body.nationLanguage !== "en") {
+        const response = yield (0, translateText_1.translateText)("Original text|Translation", req.body.nationLanguage);
+        if (typeof response === "string") {
+            profile.translate = {
+                original: response.split("|")[0],
+                translation: response.split("|")[1],
+            };
+        }
     }
     const exsistName = yield user_1.default.find({
         firstName: req.body.firstName,

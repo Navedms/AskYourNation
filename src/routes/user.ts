@@ -8,6 +8,7 @@ import sendEmail from "../utils/sendEmail";
 import generateVerificationCode from "../utils/generateVerificationCode";
 
 import { upload as uploadFiles } from "../middleware/uploadFiles";
+import { translateText } from "../utils/translateText";
 
 const storage = multer.memoryStorage();
 
@@ -26,14 +27,14 @@ const upload = multer({
 });
 
 // POST (Register and Login User)
-router.post("/test", async (req: Request, res: Response) => {
-	console.log(req.body);
+// router.post("/test", async (req: Request, res: Response) => {
+// 	console.log(req.body);
 
-	res.json({
-		test: true,
-		msg: "Your test",
-	});
-});
+// 	res.json({
+// 		test: true,
+// 		msg: "Your test",
+// 	});
+// });
 
 router.post("/", async (req: Request, res: Response) => {
 	if (req.body.firstName) {
@@ -46,7 +47,7 @@ router.post("/", async (req: Request, res: Response) => {
 	const loginUser = await User.findOne({ email: req.body.email });
 	if (!loginUser && req.body.type === "login") {
 		return res.status(400).json({
-			error: "Email address does not exist",
+			error: "Email address does not exist. You must Sign Up first",
 		});
 	}
 	if (!loginUser && req.body.type === "register") {
@@ -60,9 +61,32 @@ router.post("/", async (req: Request, res: Response) => {
 				error: "This name is already taken, please choose another name",
 			});
 		}
+		// add translated text in native languge
+		if (req.body.nation?.language && req.body.nation?.language !== "en") {
+			const response: any = await translateText(
+				"original text|translation",
+				req.body.nation.language
+			);
+			if (typeof response === "string") {
+				req.body.translate = {
+					original: response.split("|")[0],
+					translation: response.split("|")[1],
+				};
+			}
+		}
 		// register new user
 		let user = new User(req.body);
 		const doc = await user.save();
+
+		if (req.body.profilePic && doc) {
+			await User.findByIdAndUpdate(
+				doc._id,
+				{ profilePic: req.body.profilePic },
+				{
+					returnDocument: "after",
+				}
+			);
+		}
 
 		// register new user and... send email to verify your email!
 
@@ -70,34 +94,49 @@ router.post("/", async (req: Request, res: Response) => {
 			if (err) return res.status(400).send(err);
 			user.token = doc.token;
 		});
-		const message = `<p><b>Hello <strong>${user.firstName}</strong>, and welcome to AskYourNation!</b><br><br> Please click the link below to verify your email address:<br> ${process.env.SERVER_URL}/api/users/verify/${user._id}/${user.token}<br><br>Once your email address is verified, you can access your account in the app!<br><br>best regards,<br>AskYourNation App Team.</p>`;
-		const result = await sendEmail(
-			user.email,
-			"Verify Email in AskYourNation app",
-			message
-		);
-		if (result) {
-			res.json({
-				register: true,
-				message:
-					"We have sent a message to your email address. Confirm your email address to finish registration.",
-			});
+		if (req.body.verifiedEmail) {
+			// Email is verify... check if user is active...
+			if (!user.active)
+				return res.status(403).json({
+					error: "This user has been removed and cannot be used",
+				});
+
+			// if is active... login!
+			res.cookie("auth", user.token).send(user.token);
 		} else {
-			return res.status(400).json({
-				error: "Failed to send registration link to your email address",
-			});
+			const message = `<p><b>Hello <strong>${user.firstName}</strong>, and welcome to AskYourNation!</b><br><br> Please click the link below to verify your email address:<br> ${process.env.SERVER_URL}/api/users/verify/${user._id}/${user.token}<br><br>Once your email address is verified, you can access your account in the app!<br><br>best regards,<br>AskYourNation App Team.</p>`;
+			const result = await sendEmail(
+				user.email,
+				"Verify Email in AskYourNation app",
+				message
+			);
+			if (result) {
+				res.json({
+					register: true,
+					message:
+						"We have sent a message to your email address. Confirm your email address to finish registration.",
+				});
+			} else {
+				return res.status(400).json({
+					error: "Failed to send registration link to your email address",
+				});
+			}
 		}
 	} else if (loginUser && req.body.type === "login") {
-		// else compare passwords and make a login
-		loginUser.comparePassword(req.body.password, (err, isMatch) => {
-			if (err) throw err;
-			// if NOT send an Error
-			if (!isMatch)
+		if (req.body.verifiedEmail) {
+			const user = await User.findByIdAndUpdate(
+				loginUser.id,
+				{ verifiedEmail: req.body.verifiedEmail },
+				{
+					returnDocument: "after",
+				}
+			);
+			if (!user) {
 				return res.status(400).json({
-					error: "The password is incorrect",
+					error: "Failed to Register Your Profile. Try again later.",
 				});
-			// passwords is match!
-			loginUser.generateToken((err, user) => {
+			}
+			user.generateToken((err, user) => {
 				if (err) return res.status(400).send(err);
 				// check if Email is verify...
 				if (!user.verifiedEmail)
@@ -114,11 +153,71 @@ router.post("/", async (req: Request, res: Response) => {
 				// if is active... login!
 				res.cookie("auth", user.token).send(user.token);
 			});
-		});
+		} else {
+			// else compare passwords and make a login
+			loginUser.comparePassword(req.body.password, (err, isMatch) => {
+				if (err) throw err;
+				// if NOT send an Error
+				if (!isMatch)
+					return res.status(400).json({
+						error: "The password is incorrect",
+					});
+				// passwords is match!
+				loginUser.generateToken((err, user) => {
+					if (err) return res.status(400).send(err);
+					// check if Email is verify...
+					if (!user.verifiedEmail)
+						return res.status(401).json({
+							error: "Your email address has not been verified",
+						});
+
+					// if Email is verify... check if user is active...
+					if (!user.active)
+						return res.status(403).json({
+							error: "This user has been removed and cannot be used",
+						});
+
+					// if is active... login!
+					res.cookie("auth", user.token).send(user.token);
+				});
+			});
+		}
 	} else if (loginUser && req.body.type === "register") {
-		return res.status(400).json({
-			error: "Email address already exists. It is not possible to register again with this email address",
-		});
+		if (req.body.verifiedEmail) {
+			const user = await User.findByIdAndUpdate(
+				loginUser.id,
+				{ verifiedEmail: req.body.verifiedEmail },
+				{
+					returnDocument: "after",
+				}
+			);
+			if (!user) {
+				return res.status(400).json({
+					error: "Failed to Register Your Profile. Try again later.",
+				});
+			}
+			user.generateToken((err, user) => {
+				if (err) return res.status(400).send(err);
+				// check if Email is verify...
+				if (!user.verifiedEmail)
+					return res.status(401).json({
+						error: "Your email address has not been verified",
+					});
+
+				// if Email is verify... check if user is active...
+				if (!user.active)
+					return res.status(403).json({
+						error: "This user has been removed and cannot be used",
+					});
+
+				// if is active... login!
+				res.cookie("auth", user.token).send(user.token);
+			});
+		} else {
+			return res.status(400).json({
+				error: "Email address already exists. It is not possible to register again with this email address",
+			});
+		}
 	}
 });
 
@@ -158,6 +257,7 @@ router.get("/", auth, async (req: any, res: Response) => {
 		_id: { $ne: "64d893e184dc3ff40a2f0f62" },
 	}).sort({
 		[sort]: "desc",
+		firstName: "asc",
 	});
 
 	const index = list.findIndex(
@@ -173,6 +273,7 @@ router.get("/", auth, async (req: any, res: Response) => {
 				? undefined
 				: req.user.profilePic,
 		nation: req.user.nation,
+		translate: req.user.translate,
 		active: req.user.active,
 		points: req.user.points,
 		postQuestions: req.user.postQuestions,
@@ -196,6 +297,7 @@ router.get("/top-ten", auth, async (req: any, res: Response) => {
 		.limit(limit)
 		.sort({
 			[sort]: "desc",
+			firstName: "asc",
 		});
 	res.json({
 		list: list.map((user) => {
@@ -261,11 +363,24 @@ router.patch(
 		profile.nation = {
 			name: req.body.nationName,
 			flag: req.body.nationFlag,
-			language: req.bod.nationLanguage || "eng",
+			language: req.body.nationLanguage || "en",
 		};
 		if (req.images || req.body.deletProfilePic === "yes") {
 			profile.profilePic =
 				req.body.deletProfilePic === "yes" ? "" : req.images;
+		}
+		// update translated text in native languge
+		if (req.body.nationLanguage && req.body.nationLanguage !== "en") {
+			const response: any = await translateText(
+				"Original text|Translation",
+				req.body.nationLanguage
+			);
+			if (typeof response === "string") {
+				profile.translate = {
+					original: response.split("|")[0],
+					translation: response.split("|")[1],
+				};
+			}
 		}
 
 		const exsistName = await User.find({

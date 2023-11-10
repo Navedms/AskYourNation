@@ -18,6 +18,7 @@ const question_1 = __importDefault(require("../models/question"));
 const user_1 = __importDefault(require("../models/user"));
 const auth_1 = require("../middleware/auth");
 const sendEmail_1 = __importDefault(require("../utils/sendEmail"));
+const translateText_1 = require("../utils/translateText");
 // GET
 // get 20 systematic questions again and again... untill end
 router.get("/", auth_1.auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -60,6 +61,18 @@ router.get("/my-questions", auth_1.auth, (req, res) => __awaiter(void 0, void 0,
         list: list,
     });
 }));
+// get supported languages
+router.get("/languages", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const response = yield (0, translateText_1.getLanguages)();
+    if (response === null || response === void 0 ? void 0 : response.error) {
+        return res.status(400).json({
+            error: response === null || response === void 0 ? void 0 : response.error,
+        });
+    }
+    res.json({
+        list: response,
+    });
+}));
 // POST (add new question)
 router.post("/", auth_1.auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const question = new question_1.default(req.body);
@@ -91,6 +104,31 @@ router.post("/", auth_1.auth, (req, res) => __awaiter(void 0, void 0, void 0, fu
             error,
         });
     }
+}));
+// translate question and answers
+router.post("/translate", auth_1.auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const language = (_a = req.user.nation) === null || _a === void 0 ? void 0 : _a.language;
+    if (!language) {
+        return res.status(400).json({
+            error: "Translation error: The user must first select a language for translation.",
+        });
+    }
+    else if (!req.body.text) {
+        return res.status(400).json({
+            error: "Translation error: The user must first select a text for translation.",
+        });
+    }
+    const response = yield (0, translateText_1.translateText)(req.body.text, language);
+    if (response === null || response === void 0 ? void 0 : response.error) {
+        return res.status(400).json({
+            error: response === null || response === void 0 ? void 0 : response.error,
+        });
+    }
+    res.json({
+        original: req.body.text,
+        translate: response,
+    });
 }));
 // PATCH
 // update question

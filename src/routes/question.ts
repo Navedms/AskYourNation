@@ -1,10 +1,12 @@
 import express, { Request, Response } from "express";
+
 const router = express.Router();
 
 import Question from "../models/question";
 import User from "../models/user";
 import { auth } from "../middleware/auth";
 import sendEmail from "../utils/sendEmail";
+import { translateText, getLanguages } from "../utils/translateText";
 
 // GET
 
@@ -55,6 +57,20 @@ router.get("/my-questions", auth, async (req: any, res: Response) => {
 	});
 });
 
+// get supported languages
+
+router.get("/languages", async (req: any, res: Response) => {
+	const response: any = await getLanguages();
+	if (response?.error) {
+		return res.status(400).json({
+			error: response?.error,
+		});
+	}
+	res.json({
+		list: response,
+	});
+});
+
 // POST (add new question)
 
 router.post("/", auth, async (req: any, res: Response) => {
@@ -86,6 +102,31 @@ router.post("/", auth, async (req: any, res: Response) => {
 			error,
 		});
 	}
+});
+
+// translate question and answers
+
+router.post("/translate", auth, async (req: any, res: Response) => {
+	const language = req.user.nation?.language;
+	if (!language) {
+		return res.status(400).json({
+			error: "Translation error: The user must first select a language for translation.",
+		});
+	} else if (!req.body.text) {
+		return res.status(400).json({
+			error: "Translation error: The user must first select a text for translation.",
+		});
+	}
+	const response: any = await translateText(req.body.text, language);
+	if (response?.error) {
+		return res.status(400).json({
+			error: response?.error,
+		});
+	}
+	res.json({
+		original: req.body.text,
+		translate: response,
+	});
 });
 
 // PATCH
