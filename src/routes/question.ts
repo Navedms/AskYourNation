@@ -6,7 +6,11 @@ import Question from "../models/question";
 import User from "../models/user";
 import { auth } from "../middleware/auth";
 import sendEmail from "../utils/sendEmail";
-import { translateText, getLanguages } from "../utils/translateText";
+import {
+	translateText,
+	getLanguages,
+	detectingLanguage,
+} from "../utils/translateText";
 
 // GET
 
@@ -81,6 +85,35 @@ router.post("/", auth, async (req: any, res: Response) => {
 		lastName: req.user.lastName,
 	};
 	try {
+		const questionAllText = `${question.question}|${question.answers.options[0]}|${question.answers.options[1]}|${question.answers.options[2]}|${question.answers.options[3]}`;
+		const detecting: any = await detectingLanguage(questionAllText);
+		if (detecting?.error) {
+			return res.status(400).json({
+				error: detecting?.error,
+			});
+		}
+		if (detecting.confidence < 1) {
+			return res.status(400).json({
+				error: "Your question and answers contain a mix of languages. Please fill out the form in one language only.",
+			});
+		}
+		if (detecting.language && detecting.language !== "en") {
+			const response: any = await translateText(questionAllText, "en");
+			if (response?.error) {
+				return res.status(400).json({
+					error: response?.error,
+				});
+			}
+			if (response) {
+				(question.question = response.split("|")[0]),
+					(question.answers.options = [
+						response.split("|")[1],
+						response.split("|")[2],
+						response.split("|")[3],
+						response.split("|")[4],
+					]);
+			}
+		}
 		const doc = await question.save();
 		if (!doc) {
 			return res.status(400).json({
@@ -134,6 +167,35 @@ router.post("/translate", auth, async (req: any, res: Response) => {
 // update question
 router.patch("/update", auth, async (req: any, res: Response) => {
 	try {
+		const questionAllText = `${req.body.question}|${req.body.answers.options[0]}|${req.body.answers.options[1]}|${req.body.answers.options[2]}|${req.body.answers.options[3]}`;
+		const detecting: any = await detectingLanguage(questionAllText);
+		if (detecting?.error) {
+			return res.status(400).json({
+				error: detecting?.error,
+			});
+		}
+		if (detecting.confidence < 1) {
+			return res.status(400).json({
+				error: "Your question and answers contain a mix of languages. Please fill out the form in one language only.",
+			});
+		}
+		if (detecting.language && detecting.language !== "en") {
+			const response: any = await translateText(questionAllText, "en");
+			if (response?.error) {
+				return res.status(400).json({
+					error: response?.error,
+				});
+			}
+			if (response) {
+				(req.body.question = response.split("|")[0]),
+					(req.body.answers.options = [
+						response.split("|")[1],
+						response.split("|")[2],
+						response.split("|")[3],
+						response.split("|")[4],
+					]);
+			}
+		}
 		const question = await Question.findByIdAndUpdate(
 			req.body.id,
 			req.body,

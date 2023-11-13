@@ -22,6 +22,17 @@ const translateText = async (text: string, language: string) => {
 	}
 };
 
+const detectingLanguage = async (text: string) => {
+	try {
+		const [response] = await translate.detect(text);
+		return response;
+	} catch (error) {
+		return {
+			error: "Translation error: The requested text cannot be translated.",
+		};
+	}
+};
+
 const getLanguages = async () => {
 	try {
 		const [languages] = await translate.getLanguages();
@@ -33,4 +44,4 @@ const getLanguages = async () => {
 	}
 };
 
-export { translateText, getLanguages };
+export { translateText, detectingLanguage, getLanguages };
