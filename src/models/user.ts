@@ -13,6 +13,7 @@ export interface Nation {
 export interface Translate {
 	original: string;
 	translation: string;
+	note: string;
 }
 export interface VerificationCode {
 	code: string;
@@ -107,6 +108,11 @@ const UserSchema: Schema = new Schema(
 			translation: {
 				type: String,
 				default: "Translation",
+			},
+			note: {
+				type: String,
+				default:
+					"You can fill out the form in any language you choose. Please be careful not to mix multiple languages together. Our system will translate your question and save it in English.",
 			},
 		},
 		active: {

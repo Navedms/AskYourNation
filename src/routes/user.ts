@@ -64,13 +64,14 @@ router.post("/", async (req: Request, res: Response) => {
 		// add translated text in native languge
 		if (req.body.nation?.language && req.body.nation?.language !== "en") {
 			const response: any = await translateText(
-				"original text|translation",
+				"original text|translation|You can fill out the form in any language you choose. Please be careful not to mix multiple languages together. Our system will translate your question and save it in English.",
 				req.body.nation.language
 			);
 			if (typeof response === "string") {
 				req.body.translate = {
 					original: response.split("|")[0],
 					translation: response.split("|")[1],
+					note: response.split("|")[2],
 				};
 			}
 		}
@@ -372,13 +373,14 @@ router.patch(
 		// update translated text in native languge
 		if (req.body.nationLanguage && req.body.nationLanguage !== "en") {
 			const response: any = await translateText(
-				"Original text|Translation",
+				"original text|translation|You can fill out the form in any language you choose. Please be careful not to mix multiple languages together. Our system will translate your question and save it in English.",
 				req.body.nationLanguage
 			);
 			if (typeof response === "string") {
 				profile.translate = {
 					original: response.split("|")[0],
 					translation: response.split("|")[1],
+					note: response.split("|")[2],
 				};
 			}
 		}
