@@ -62,11 +62,14 @@ router.post("/", async (req: Request, res: Response) => {
 			});
 		}
 		// add translated text in native languge
-		if (req.body.nation?.language && req.body.nation?.language !== "en") {
-			const response: any = await translateText(
-				"original text|translation|You can fill out the form in any language you choose. Please be careful not to mix multiple languages together. Our system will translate your question and save it in English.",
-				req.body.nation.language
-			);
+		if (req.body.nation?.language) {
+			const response: any =
+				req.body.nation?.language === "en"
+					? "original text|translation|You can fill out the form in any language you choose. Please be careful not to mix multiple languages together. Our system will translate your question and save it in English."
+					: await translateText(
+							"original text|translation|You can fill out the form in any language you choose. Please be careful not to mix multiple languages together. Our system will translate your question and save it in English.",
+							req.body.nation.language
+					  );
 			if (typeof response === "string") {
 				req.body.translate = {
 					original: response.split("|")[0],
@@ -371,11 +374,14 @@ router.patch(
 				req.body.deletProfilePic === "yes" ? "" : req.images;
 		}
 		// update translated text in native languge
-		if (req.body.nationLanguage && req.body.nationLanguage !== "en") {
-			const response: any = await translateText(
-				"original text|translation|You can fill out the form in any language you choose. Please be careful not to mix multiple languages together. Our system will translate your question and save it in English.",
-				req.body.nationLanguage
-			);
+		if (req.body.nationLanguage) {
+			const response: any =
+				req.body.nationLanguage === "en"
+					? "original text|translation|You can fill out the form in any language you choose. Please be careful not to mix multiple languages together. Our system will translate your question and save it in English."
+					: await translateText(
+							"original text|translation|You can fill out the form in any language you choose. Please be careful not to mix multiple languages together. Our system will translate your question and save it in English.",
+							req.body.nationLanguage
+					  );
 			if (typeof response === "string") {
 				profile.translate = {
 					original: response.split("|")[0],
