@@ -1,6 +1,6 @@
 {
 	"name": "askyournation",
-	"version": "1.0.0",
+	"version": "1.0.7",
 	"description": "",
 	"main": "build/index.js",
 	"scripts": {
