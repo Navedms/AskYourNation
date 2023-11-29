@@ -11,6 +11,7 @@ import {
 	getLanguages,
 	detectingLanguage,
 } from "../utils/translateText";
+import { log } from "console";
 
 // GET
 
@@ -92,7 +93,7 @@ router.post("/", auth, async (req: any, res: Response) => {
 				error: detecting?.error,
 			});
 		}
-		if (detecting.confidence < 1) {
+		if (detecting.confidence < 0.5) {
 			return res.status(400).json({
 				error: "Your question and answers contain a mix of languages. Please fill out the form in one language only.",
 			});
@@ -104,6 +105,8 @@ router.post("/", auth, async (req: any, res: Response) => {
 					error: response?.error,
 				});
 			}
+			console.log(response);
+
 			if (response) {
 				(question.question = response.split("|")[0]),
 					(question.answers.options = [
