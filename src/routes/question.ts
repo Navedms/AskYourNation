@@ -104,8 +104,18 @@ router.post("/", auth, async (req: any, res: Response) => {
 					error: response?.error,
 				});
 			}
-			console.log(response);
 			if (response) {
+				if (
+					!response.split("|")[0] ||
+					!response.split("|")[1] ||
+					!response.split("|")[2] ||
+					!response.split("|")[3] ||
+					!response.split("|")[4]
+				) {
+					return res.status(400).json({
+						error: "Translation error: The requested text cannot be translated.",
+					});
+				}
 				(question.question = response.split("|")[0]),
 					(question.answers.options = [
 						response.split("|")[1],
@@ -168,35 +178,6 @@ router.post("/translate", auth, async (req: any, res: Response) => {
 // update question
 router.patch("/update", auth, async (req: any, res: Response) => {
 	try {
-		const questionAllText = `${req.body.question}|${req.body.answers.options[0]}|${req.body.answers.options[1]}|${req.body.answers.options[2]}|${req.body.answers.options[3]}`;
-		const detecting: any = await detectingLanguage(questionAllText);
-		if (detecting?.error) {
-			return res.status(400).json({
-				error: detecting?.error,
-			});
-		}
-		if (detecting.confidence < 0.5) {
-			return res.status(400).json({
-				error: "Your question and answers contain a mix of languages. Please fill out the form in one language only.",
-			});
-		}
-		if (detecting.language && detecting.language !== "en") {
-			const response: any = await translateText(questionAllText, "en");
-			if (response?.error) {
-				return res.status(400).json({
-					error: response?.error,
-				});
-			}
-			if (response) {
-				(req.body.question = response.split("|")[0]),
-					(req.body.answers.options = [
-						response.split("|")[1],
-						response.split("|")[2],
-						response.split("|")[3],
-						response.split("|")[4],
-					]);
-			}
-		}
 		const question = await Question.findByIdAndUpdate(
 			req.body.id,
 			req.body,
