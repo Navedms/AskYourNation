@@ -27,14 +27,14 @@ const upload = multer({
 });
 
 // POST (Register and Login User)
-router.post("/test", async (req: Request, res: Response) => {
-	console.log(req.body);
+// router.post("/test", async (req: Request, res: Response) => {
+// 	console.log(req.body);
 
-	res.json({
-		test: true,
-		msg: "Your test",
-	});
-});
+// 	res.json({
+// 		test: true,
+// 		msg: "Your test",
+// 	});
+// });
 
 router.post("/", async (req: Request, res: Response) => {
 	if (req.body.firstName) {
