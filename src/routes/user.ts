@@ -46,7 +46,7 @@ router.post("/", async (req: Request, res: Response) => {
 	// check if email already register (User)...
 	const loginUser = await User.findOne({ email: req.body.email });
 	if (!loginUser && req.body.type === "login") {
-		return res.status(400).json({
+		return res.status(410).json({
 			error: "Email address does not exist. You must Sign Up first",
 		});
 	}
