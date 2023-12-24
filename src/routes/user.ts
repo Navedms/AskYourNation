@@ -9,6 +9,8 @@ import generateVerificationCode from "../utils/generateVerificationCode";
 
 import { upload as uploadFiles } from "../middleware/uploadFiles";
 import { translateText } from "../utils/translateText";
+import sendPushNotification from "../utils/pushNotifications";
+import Expo from "expo-server-sdk";
 
 const storage = multer.memoryStorage();
 
@@ -130,7 +132,10 @@ router.post("/", async (req: Request, res: Response) => {
 		if (req.body.verifiedEmail) {
 			const user = await User.findByIdAndUpdate(
 				loginUser.id,
-				{ verifiedEmail: req.body.verifiedEmail },
+				{
+					verifiedEmail: req.body.verifiedEmail,
+					pushToken: req.body.pushToken,
+				},
 				{
 					returnDocument: "after",
 				}
@@ -190,7 +195,10 @@ router.post("/", async (req: Request, res: Response) => {
 		if (req.body.verifiedEmail) {
 			const user = await User.findByIdAndUpdate(
 				loginUser.id,
-				{ verifiedEmail: req.body.verifiedEmail },
+				{
+					verifiedEmail: req.body.verifiedEmail,
+					pushToken: req.body.pushToken,
+				},
 				{
 					returnDocument: "after",
 				}
@@ -285,6 +293,7 @@ router.get("/", auth, async (req: any, res: Response) => {
 		rank: index + 1,
 		sounds: req.user.sounds,
 		token: req.user.token,
+		lastActivity: req.user.lastActivity,
 	});
 });
 
@@ -304,7 +313,7 @@ router.get("/top-ten", auth, async (req: any, res: Response) => {
 			firstName: "asc",
 		});
 	res.json({
-		list: list.map((user) => {
+		list: list.map((user, index) => {
 			return {
 				id: user._id,
 				firstName: user.firstName,
@@ -315,10 +324,36 @@ router.get("/top-ten", auth, async (req: any, res: Response) => {
 						: user.profilePic,
 				nation: user.nation,
 				points: user.points,
+				answeredQuestions: user.answeredQuestions.length,
+				lastActivity: user.lastActivity,
 			};
 		}),
 	});
 });
+
+// router.post("/push-notification", auth, async (req: any, res: Response) => {
+// 	const user = await User.findById(req.body.id);
+
+// 	const { pushToken } = user;
+
+// 	if (Expo.isExpoPushToken(pushToken)) {
+// 		const result = await sendPushNotification(
+// 			pushToken,
+// 			req.body.title,
+// 			req.body.categoryId,
+// 			req.body.message
+// 		);
+// 		if (result) {
+// 			res.json({
+// 				success: true,
+// 			});
+// 		} else {
+// 			return res.status(400).json({
+// 				error: "error to sent push notification to the user(s)",
+// 			});
+// 		}
+// 	}
+// });
 
 // PATCH
 

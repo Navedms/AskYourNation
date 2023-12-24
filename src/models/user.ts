@@ -43,6 +43,8 @@ export interface IUser {
 	answeredQuestions: Schema.Types.ObjectId[];
 	blockUsers: Schema.Types.ObjectId[];
 	token: string;
+	pushToken: string;
+	lastActivity: Date;
 	verificationCode: VerificationCode;
 }
 
@@ -149,6 +151,9 @@ const UserSchema: Schema = new Schema(
 		token: {
 			type: String,
 		},
+		pushToken: {
+			type: String,
+		},
 		verificationCode: {
 			code: {
 				type: String,
@@ -157,6 +162,7 @@ const UserSchema: Schema = new Schema(
 				type: Number,
 			},
 		},
+		lastActivity: { type: Date },
 	},
 	{
 		versionKey: false,
@@ -224,7 +230,7 @@ UserSchema.methods.generateToken = async function (cb: any) {
 		JSON.parse(JSON.stringify(newUser)),
 		config.secret.JWT_SECRET_KEY
 	);
-
+	loginUser.lastActivity = new Date();
 	loginUser.token = token;
 	const user = await loginUser.save();
 	cb(null, user);
@@ -236,10 +242,13 @@ UserSchema.statics.findByToken = function (token, cb) {
 		token,
 		config.secret.JWT_SECRET_KEY,
 		async function (err: any, decode: any) {
-			const loginUser = await user.findOne({
-				_id: decode.id,
-				token: token,
-			});
+			const loginUser = await user.findOneAndUpdate(
+				{
+					_id: decode.id,
+					token: token,
+				},
+				{ lastActivity: new Date() }
+			);
 
 			cb(null, loginUser);
 		}
