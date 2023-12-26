@@ -9,8 +9,6 @@ import generateVerificationCode from "../utils/generateVerificationCode";
 
 import { upload as uploadFiles } from "../middleware/uploadFiles";
 import { translateText } from "../utils/translateText";
-import sendPushNotification from "../utils/pushNotifications";
-import Expo from "expo-server-sdk";
 
 const storage = multer.memoryStorage();
 
@@ -330,30 +328,6 @@ router.get("/top-ten", auth, async (req: any, res: Response) => {
 		}),
 	});
 });
-
-// router.post("/push-notification", auth, async (req: any, res: Response) => {
-// 	const user = await User.findById(req.body.id);
-
-// 	const { pushToken } = user;
-
-// 	if (Expo.isExpoPushToken(pushToken)) {
-// 		const result = await sendPushNotification(
-// 			pushToken,
-// 			req.body.title,
-// 			req.body.categoryId,
-// 			req.body.message
-// 		);
-// 		if (result) {
-// 			res.json({
-// 				success: true,
-// 			});
-// 		} else {
-// 			return res.status(400).json({
-// 				error: "error to sent push notification to the user(s)",
-// 			});
-// 		}
-// 	}
-// });
 
 // PATCH
 

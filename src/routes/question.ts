@@ -11,6 +11,7 @@ import {
 	getLanguages,
 	detectingLanguage,
 } from "../utils/translateText";
+import sendNotificationsDroppedRanking from "../utils/sendNotificationsDroppedRanking";
 
 // GET
 
@@ -141,6 +142,9 @@ router.post("/", auth, async (req: any, res: Response) => {
 			msg: "Your question has been successfully posted",
 			question: doc,
 		});
+
+		// send notification to users that dropped in ranking (if exsist)
+		sendNotificationsDroppedRanking(req.user._id, req.body.rank);
 	} catch (error) {
 		return res.status(400).json({
 			error,
@@ -339,6 +343,7 @@ router.patch("/answer", auth, async (req: any, res: Response) => {
 		});
 
 		// update user DB
+
 		await User.findByIdAndUpdate(req.user._id, {
 			$push: { answeredQuestions: req.body.id },
 			$inc: {
@@ -352,6 +357,9 @@ router.patch("/answer", auth, async (req: any, res: Response) => {
 			userIndex: req.body.answerIndex,
 			userAnsweredCorrect: userAnsweredCorrect,
 		});
+
+		// send notification to users that dropped in ranking (if exsist)
+		sendNotificationsDroppedRanking(req.user._id, req.body.rank);
 	} catch (error) {
 		return res.status(400).json({
 			error,
