@@ -8,7 +8,14 @@ const sendPushNotification = async (
 ): Promise<any> => {
 	const expo = new Expo();
 	const msgs = expo.chunkPushNotifications([
-		{ to: pushToken, sound: "default", title, categoryId, body: message },
+		{
+			to: pushToken,
+			sound: "default",
+			title,
+			categoryId,
+			body: message,
+			channelId: "default",
+		},
 	]);
 
 	const sendPushMsges = async () => {

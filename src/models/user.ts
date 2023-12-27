@@ -45,6 +45,7 @@ export interface IUser {
 	token: string;
 	pushToken: string;
 	lastActivity: Date;
+	lastNotification: Date;
 	verificationCode: VerificationCode;
 }
 
@@ -163,6 +164,7 @@ const UserSchema: Schema = new Schema(
 			},
 		},
 		lastActivity: { type: Date },
+		lastNotification: { type: Date, default: new Date() },
 	},
 	{
 		versionKey: false,

@@ -12,6 +12,8 @@ import {
 	detectingLanguage,
 } from "../utils/translateText";
 import sendNotificationsDroppedRanking from "../utils/sendNotificationsDroppedRanking";
+import sendNotificationsRatingQuestion from "../utils/sendNotificationsRatingQuestion";
+import sendNotificationsNotWriteQuestion from "../utils/sendNotificationsNotWriteQuestion";
 
 // GET
 
@@ -145,6 +147,9 @@ router.post("/", auth, async (req: any, res: Response) => {
 
 		// send notification to users that dropped in ranking (if exsist)
 		sendNotificationsDroppedRanking(req.user._id, req.body.rank);
+
+		// send notification to users that dont write questions yet and not get notifications in the last 3 days.
+		sendNotificationsNotWriteQuestion();
 	} catch (error) {
 		return res.status(400).json({
 			error,
@@ -251,6 +256,16 @@ router.patch("/rating", auth, async (req: any, res: Response) => {
 			numberOfRatings: newQuestion.rating.numberOfRatings,
 			id: newQuestion._id,
 		});
+
+		// send notification to the created question user that the ranting user, rate his/her question.
+		sendNotificationsRatingQuestion(
+			newQuestion.createdBy.id,
+			newQuestion.createdBy.firstName,
+			req.user.firstName,
+			req.user.lastName,
+			rating,
+			newQuestion.question
+		);
 	} catch (error) {
 		return res.status(400).json({
 			error,

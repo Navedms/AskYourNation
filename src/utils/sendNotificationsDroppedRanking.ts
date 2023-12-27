@@ -3,7 +3,6 @@ import Expo from "expo-server-sdk";
 import User from "../models/user";
 import sendPushNotification from "./pushNotifications";
 import numberOrdinal from "./numberOrdinal";
-import { log } from "console";
 
 const sendNotificationsDroppedRanking = async (id: string, rank: number) => {
 	// chack if need send push notifications to users who just dropped in the ranking...
