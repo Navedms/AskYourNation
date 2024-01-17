@@ -1,6 +1,6 @@
  <h3 align="center">Ask Your Nation</h3>
  <h5 align="center">Celebrate the diversity of our world!</h5>
- <h6 align="center">Version: 1.0.15 (server) | Last update: 28/12/2023</h6>
+ <h6 align="center">Version: 1.0.16 (server) | Last update: 17/01/2024</h6>
 
   <p align="center">
     Welcome to AskYourNation, the app where you become the quizmaster! Immerse yourself in the world of global trivia as you ask and answer questions about nations from all corners of the globe. Share your knowledge, learn fascinating facts, and get to know other people's customs and cultures.
